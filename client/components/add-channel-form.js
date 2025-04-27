@@ -1,21 +1,33 @@
 class AddChannelForm extends HTMLElement {
-  constructor () {
-    super()
+  // This is the constructor for the AddChannelForm class.
+  constructor() {
+    super();
   }
-  connectedCallback () {
-    this.render()
+  // This function is called when the element is connected to the DOM.
+  connectedCallback() {
+    this.render();
   }
-  disconnectedCallback () {
-    this.unregisterEvents()
+  // This function is called when the element is disconnected from the DOM.
+  disconnectedCallback() {
+    this.unregisterEvents();
   }
-  registerEvents () {
-    this.querySelector('form').addEventListener('submit', this.addChannelHandler.bind(this))
+  // This function registers the event listeners for the form.
+  registerEvents() {
+    this.querySelector("form").addEventListener(
+      "submit",
+      this.addChannelHandler.bind(this)
+    );
   }
-  unregisterEvents () {
-    this.querySelector('form').removeEventListener('submit', this.addChannelHandler.bind(this))
+  // This function unregisters the event listeners for the form.
+  unregisterEvents() {
+    this.querySelector("form").removeEventListener(
+      "submit",
+      this.addChannelHandler.bind(this)
+    );
   }
-  render () {
-    this.innerHTML = /*html*/`
+  // This function renders the HTML for the add channel form.
+  render() {
+    this.innerHTML = /*html*/ `
       <form id="add-channel-form">
         <div class="flex space-between">
           <label for="channel-name">Add a new channel</label>
@@ -24,48 +36,51 @@ class AddChannelForm extends HTMLElement {
         </div>
         <div class="status"></div>
       </form>
-    `
+    `;
 
-    this.registerEvents()
+    this.registerEvents();
   }
 
-  addChannelHandler (event) {
-    event.preventDefault()
-  
-    const form = event.target
-    const input = form.querySelector('input')
-    const loader = form.querySelector('.loader')
-    const status = form.querySelector('.status')
-    
-    const channelName = document.getElementById('channel-name').value
-    if (!channelName) return alert('empty channel name')
+  // This function handles the add channel form submission.
+  addChannelHandler(event) {
+    event.preventDefault();
 
-    freezeForm()
-    
-    fetch('/api/channels', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: channelName })
+    const form = event.target;
+    const input = form.querySelector("input");
+    const loader = form.querySelector(".loader");
+    const status = form.querySelector(".status");
+
+    const channelName = document.getElementById("channel-name").value;
+    if (!channelName) return alert("empty channel name");
+
+    freezeForm();
+
+    fetch("/api/channels", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: channelName }),
     })
-    .then(res => res.text())
-    .then((text) => {
-      form.reset()
-      status.innerText = text // `Successfully added ${channelName}`
-    })
-    .catch(error => {
-      console.error('Error adding channel:', error)
-      status.innerText = `There was an error adding the channel ${channelName}, please check your application logs`
-    })
-    .finally(unfreezeForm)
-  
+      .then((res) => res.text())
+      .then((text) => {
+        form.reset();
+        status.innerText = text; // `Successfully added ${channelName}`
+      })
+      .catch((error) => {
+        console.error("Error adding channel:", error);
+        status.innerText = `There was an error adding the channel ${channelName}, please check your application logs`;
+      })
+      .finally(unfreezeForm);
+
+    // This function freezes the form.
     function freezeForm() {
-      input.disabled = true
-      loader.classList.add('show')
+      input.disabled = true;
+      loader.classList.add("show");
     }
+    // This function unfreezes the form.
     function unfreezeForm() {
-      input.disabled = false
-      loader.classList.remove('show')
+      input.disabled = false;
+      loader.classList.remove("show");
     }
   }
 }
-customElements.define('add-channel-form', AddChannelForm)
+customElements.define("add-channel-form", AddChannelForm);

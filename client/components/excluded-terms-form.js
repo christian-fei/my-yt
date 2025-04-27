@@ -1,24 +1,36 @@
 class ExcludedTermsForm extends HTMLElement {
-  constructor () {
-    super()
+  // This is the constructor for the ExcludedTermsForm class.
+  constructor() {
+    super();
   }
-  connectedCallback () {
-    this.render()
-    this.registerEvents()
+  // This function is called when the element is connected to the DOM.
+  connectedCallback() {
+    this.render();
+    this.registerEvents();
 
-    this.fetchExcludedTermsHandler()
+    this.fetchExcludedTermsHandler();
   }
-  disconnectedCallback () {
-    this.unregisterEvents()
+  // This function is called when the element is disconnected from the DOM.
+  disconnectedCallback() {
+    this.unregisterEvents();
   }
-  registerEvents () {
-    this.querySelector('#add-excluded-term').addEventListener('keyup', this.addExcludedTermHandler.bind(this))
+  // This function registers the event listeners for the excluded terms form.
+  registerEvents() {
+    this.querySelector("#add-excluded-term").addEventListener(
+      "keyup",
+      this.addExcludedTermHandler.bind(this)
+    );
   }
-  unregisterEvents () {
-    this.querySelector('#add-excluded-term').removeEventListener('keyup', this.addExcludedTermHandler.bind(this))
+  // This function unregisters the event listeners for the excluded terms form.
+  unregisterEvents() {
+    this.querySelector("#add-excluded-term").removeEventListener(
+      "keyup",
+      this.addExcludedTermHandler.bind(this)
+    );
   }
-  render () {
-    this.innerHTML = /*html*/`
+  // This function renders the HTML for the excluded terms form.
+  render() {
+    this.innerHTML = /*html*/ `
       <div>
         <div class="flex space-between">
           <div>
@@ -34,50 +46,52 @@ class ExcludedTermsForm extends HTMLElement {
           <input type="text" id="add-excluded-term" placeholder="Add excluded term" required />
         </div>
       </div>
-    `
+    `;
   }
 
-  addExcludedTermHandler (event) {
-    event.preventDefault()
-    const term = event.target.value.trim()
-    if (event.key === 'Enter' && term) {
-      fetch('/api/excluded-terms', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({term})
+  // This function handles adding an excluded term.
+  addExcludedTermHandler(event) {
+    event.preventDefault();
+    const term = event.target.value.trim();
+    if (event.key === "Enter" && term) {
+      fetch("/api/excluded-terms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ term }),
       })
-      .then(() => {
-        event.target.value = ''
-      })
-      .catch(console.error)
-      .finally(this.fetchExcludedTermsHandler.bind(this))
+        .then(() => {
+          event.target.value = "";
+        })
+        .catch(console.error)
+        .finally(this.fetchExcludedTermsHandler.bind(this));
     }
   }
-  fetchExcludedTermsHandler () {
-    fetch('/api/excluded-terms')
-      .then(response => response.json())
-      .then(data => {
-        const $excludedTerms = this.querySelector('#excluded-terms')
-        if (!$excludedTerms) return console.warn('missing #excluded-terms')
-        if (data.length > 0) $excludedTerms.innerHTML = ''
-        data.forEach(term => {
-          const $li = document.createElement('li')
-          $li.textContent = term
-          $excludedTerms.appendChild($li)
-          $li.addEventListener('click', () => {
-            if (!confirm('Remove "' + term + '" from excluded terms?')) return
+  // This function fetches the excluded terms.
+  fetchExcludedTermsHandler() {
+    fetch("/api/excluded-terms")
+      .then((response) => response.json())
+      .then((data) => {
+        const $excludedTerms = this.querySelector("#excluded-terms");
+        if (!$excludedTerms) return console.warn("missing #excluded-terms");
+        if (data.length > 0) $excludedTerms.innerHTML = "";
+        data.forEach((term) => {
+          const $li = document.createElement("li");
+          $li.textContent = term;
+          $excludedTerms.appendChild($li);
+          $li.addEventListener("click", () => {
+            if (!confirm('Remove "' + term + '" from excluded terms?')) return;
             fetch(`/api/excluded-terms`, {
-              method: 'DELETE',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ term })
+              method: "DELETE",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ term }),
             })
-            .then(() => $li.remove())
-            .catch(error => {
-              console.error(error)
-            })
-          })
-        })
-      })
+              .then(() => $li.remove())
+              .catch((error) => {
+                console.error(error);
+              });
+          });
+        });
+      });
   }
 }
-customElements.define('excluded-terms-form', ExcludedTermsForm)
+customElements.define("excluded-terms-form", ExcludedTermsForm);
