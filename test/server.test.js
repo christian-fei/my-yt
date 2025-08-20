@@ -1,10 +1,9 @@
-import { test, describe, mock } from 'node:test'
+import { test, describe } from 'node:test'
 import fs from 'fs'
 import assert from 'assert'
 import { createServer } from '../server/http.js'
 import Repository from '../lib/repository.js'
 
-mock.timers.enable({ apis: ['setInterval'] })
 let repo
 const state = {}
 const connections = []
