@@ -74,10 +74,12 @@ describe('repository', () => {
     assert.deepEqual(repo.getVideo('12345'), { id: '12345', channelName: 'tester', title: 'The Code', description: 'some description in common', downloaded: false })
   })
 
-  test('toggles ignore video', () => {
+  test('set ignored/unignored video', () => {
     repo.upsertVideos([video1, video2])
-    repo.toggleIgnoreVideo('12345')
+    repo.ignoreVideo('12345')
+    repo.unignoreVideo('67890')
     assert.equal(repo.getVideo('12345').ignored, true)
+    assert.equal(repo.getVideo('67890').ignored, false)
   })
 
   test('marks video as downloaded', () => {

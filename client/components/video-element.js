@@ -213,7 +213,7 @@ class VideoElement extends HTMLElement {
     fetch('/api/ignore-video', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: this.video.id })
+      body: JSON.stringify({ id: this.video.id, ignore: !this.video.ignored })
     })
       .then(() => {
         this.remove()

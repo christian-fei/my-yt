@@ -156,8 +156,8 @@ async function summarizeVideoHandler (req, res, repo, connections = [], state = 
 
 async function ignoreVideoHandler (req, res, repo, connections = []) {
   const body = await getBody(req)
-  const { id } = JSON.parse(body)
-  const ignored = repo.toggleIgnoreVideo(id)
+  const { id, ignore } = JSON.parse(body)
+  const ignored = ignore ? repo.ignoreVideo(id) : repo.unignoreVideo(id)
   broadcastSSE(JSON.stringify({ type: 'ignored', videoId: id, ignored }), connections)
   res.writeHead(200, { 'Content-Type': 'application/json' })
   return res.end(JSON.stringify(ignored))
