@@ -122,7 +122,7 @@ class VideoElement extends HTMLElement {
   watchVideoHandler (event) {
     event.preventDefault()
     this.querySelector('.play.video-placeholder').outerHTML = /* html */`
-    <video controls playsinline style="user-select: none; width: 400px; width: -webkit-fill-available;">
+    <video controls playsinline style="user-select: none; width: 100%;">
       <source src="/api/videos/${this.video.id}.${this.video.format || 'mp4'}" type="video/${this.video.format || 'mp4'}" />
       ${store.get(store.showCaptionsKey)
         ? /* html */`<track default kind="captions" srclang="en" src="/api/captions/${this.video.id}" />`
