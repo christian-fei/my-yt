@@ -14,7 +14,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "nano-spawn": "^1.0.3"
+    "nano-spawn": "^2.0.0"
   },
   "devDependencies": {
     "@open-wc/testing": "^4.0.0",
