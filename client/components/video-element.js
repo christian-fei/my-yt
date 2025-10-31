@@ -20,19 +20,25 @@ class VideoElement extends HTMLElement {
   }
 
   static get observedAttributes () {
-    return ['data-data', 'data-summarizing', 'data-downloading']
+    return ['data-data', 'data-summarizing', 'data-downloading', 'data-progress']
   }
 
   attributeChangedCallback (name, _, newValue) {
-    if (name === 'data-data') {
-      this.video = JSON.parse(this.dataset.data)
-      this.render()
-    }
     if (name === 'data-downloading' && this.querySelector('.action.download')) {
       this.querySelector('.action.download').innerText = this.downloadStartedText
+      return
+    }
+    if (name === 'data-progress' && this.querySelector('.action.download')) {
+      this.querySelector('.action.download').innerText = this.downloadStartedText + ` (${this.dataset.progress}%)`
+      return
     }
     if (name === 'data-summarizing' && this.querySelector('.action.summarize')) {
       this.querySelector('.action.summarize').innerText = this.summaryStartedText
+      return
+    }
+    if (name === 'data-data') {
+      this.video = JSON.parse(this.dataset.data)
+      this.render()
     }
   }
 
@@ -47,6 +53,7 @@ class VideoElement extends HTMLElement {
     this.dataset.summarized = this.video.summary ? 'true' : 'false'
     this.dataset.downloaded = this.video.downloaded ? 'true' : 'false'
     this.dataset.ignored = this.video.ignored ? 'true' : 'false'
+    this.dataset.progress = this.video.progress
 
     this.innerHTML = /* html */`
       ${this.video.downloaded

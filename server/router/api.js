@@ -108,12 +108,17 @@ async function downloadVideoHandler (req, res, repo, connections = [], state = {
   state.downloading[id] = { lines: [] }
 
   let broadcastNewVideoOnce = false
-  downloadVideo(id, repo, (line) => {
+  downloadVideo(id, repo, (message) => {
     if (external && !broadcastNewVideoOnce) {
       broadcastSSE(JSON.stringify({ type: 'new-videos', videos: [repo.getVideo(id)] }), connections)
       broadcastNewVideoOnce = true
     }
-    broadcastSSE(JSON.stringify({ type: 'download-log-line', line }), connections)
+    if (message.status === 'info') {
+      broadcastSSE(JSON.stringify({ type: 'download-log-line', line: message.line }), connections)
+    }
+    if (message.status === 'progress') {
+      broadcastSSE(JSON.stringify({ type: 'download-progress', progress: message }), connections)
+    }
   })
     .then(() => {
       const video = repo.getVideo(id)

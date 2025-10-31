@@ -50,6 +50,14 @@ window.eventSource.onmessage = (message) => {
       $downloadLogLines.scrollTop = $downloadLogLines.scrollHeight
       return
     }
+    if (data.type === 'download-progress' && data.progress) {
+      const videoId = data.progress.id
+      ;[...document.querySelectorAll(`[data-video-id="${videoId}"]`)].forEach($video => {
+        $video.dataset.progress = data.progress.percent
+      })
+
+      return
+    }
     if (data.type === 'new-videos' && data.videos) {
       const $videosContainer = document.querySelector('videos-container')
       if (!$videosContainer) return
