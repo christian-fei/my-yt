@@ -20,7 +20,7 @@ class VideoElement extends HTMLElement {
   }
 
   static get observedAttributes () {
-    return ['data-data', 'data-summarizing', 'data-downloading', 'data-progress']
+    return ['data-data', 'data-summarizing', 'data-downloading', 'data-progress', 'data-transcode-progress']
   }
 
   attributeChangedCallback (name, _, newValue) {
@@ -30,6 +30,10 @@ class VideoElement extends HTMLElement {
     }
     if (name === 'data-progress' && this.querySelector('.action.download')) {
       this.querySelector('.action.download').innerText = this.downloadStartedText + ` (${this.dataset.progress}%)`
+      return
+    }
+    if (name === 'data-transcode-progress' && this.querySelector('.action.download')) {
+      this.querySelector('.action.download').innerText = '⚙️ Transcoding..' + ` (${this.dataset.transcodeProgress}%)`
       return
     }
     if (name === 'data-summarizing' && this.querySelector('.action.summarize')) {

@@ -45,7 +45,7 @@ window.eventSource.onmessage = (message) => {
       $state.classList.add('updated')
       downloadLogTimeoutHandle = setTimeout(() => $state.classList.remove('updated'), 10000)
 
-      const $downloadLogLines = $state.querySelector(' .lines')
+      const $downloadLogLines = $state.querySelector('.lines')
       $downloadLogLines.innerText += '\n' + data.line
       $downloadLogLines.scrollTop = $downloadLogLines.scrollHeight
       return
@@ -54,6 +54,15 @@ window.eventSource.onmessage = (message) => {
       const videoId = data.progress.id
       ;[...document.querySelectorAll(`[data-video-id="${videoId}"]`)].forEach($video => {
         $video.dataset.progress = data.progress.percent
+      })
+
+      return
+    }
+
+    if (data.type === 'transcode-progress' && data.progress) {
+      const videoId = data.progress.id
+      ;[...document.querySelectorAll(`[data-video-id="${videoId}"]`)].forEach($video => {
+        $video.dataset.transcodeProgress = data.progress.percent
       })
 
       return

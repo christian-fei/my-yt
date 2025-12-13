@@ -113,11 +113,29 @@ async function downloadVideoHandler (req, res, repo, connections = [], state = {
       broadcastSSE(JSON.stringify({ type: 'new-videos', videos: [repo.getVideo(id)] }), connections)
       broadcastNewVideoOnce = true
     }
+    // Log and broadcast info/progress messages from workers
     if (message.status === 'info') {
+      console.log('[api] download info:', message.line)
       broadcastSSE(JSON.stringify({ type: 'download-log-line', line: message.line }), connections)
     }
     if (message.status === 'progress') {
-      broadcastSSE(JSON.stringify({ type: 'download-progress', progress: message }), connections)
+      // Ensure progress messages include the video id so the client can map updates
+      const progressPayload = Object.assign({}, message)
+      if (!progressPayload.id) progressPayload.id = id
+      // Add a phase marker so UI can distinguish download vs transcode
+      if (!progressPayload.phase) progressPayload.phase = (progressPayload.frame || (progressPayload.time && progressPayload.time.indexOf(':') >= 0 && !progressPayload.total)) ? 'transcode' : 'download'
+      try {
+        console.log('[api] download progress:', { id: progressPayload.id, percent: progressPayload.percent, time: progressPayload.time, phase: progressPayload.phase })
+      } catch (err) {
+        console.log('[api] download progress (log error)', err && err.message)
+      }
+      // Broadcast separate event types for download vs transcode so client can
+      // render different UI states.
+      if (progressPayload.phase === 'transcode') {
+        broadcastSSE(JSON.stringify({ type: 'transcode-progress', progress: progressPayload }), connections)
+      } else {
+        broadcastSSE(JSON.stringify({ type: 'download-progress', progress: progressPayload }), connections)
+      }
     }
   })
     .then(() => {
