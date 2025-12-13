@@ -8,6 +8,7 @@ class VideoElement extends HTMLElement {
     super()
     this.downloadStartedText = '⚡️ Downloading..'
     this.summaryStartedText = '⚡️ Summarizing..'
+    this.transcodeStartedText = '⚙️ Transcoding..'
   }
 
   connectedCallback () {
@@ -33,7 +34,7 @@ class VideoElement extends HTMLElement {
       return
     }
     if (name === 'data-transcode-progress' && this.querySelector('.action.download')) {
-      this.querySelector('.action.download').innerText = '⚙️ Transcoding..' + ` (${this.dataset.transcodeProgress}%)`
+      this.querySelector('.action.download').innerText = this.transcodeStartedText + ` (${this.dataset.transcodeProgress}%)`
       return
     }
     if (name === 'data-summarizing' && this.querySelector('.action.summarize')) {
