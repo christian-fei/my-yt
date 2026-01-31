@@ -20,38 +20,14 @@ if (!process.env.CI) {
 
   test('excludes members-only videos from channel', async () => {
     // CasualNerdReactions has members-only "early access" videos
-    // Fetch raw YouTube data to find members-only video IDs
     const channelName = 'CasualNerdReactions'
-    const response = await fetch(`https://www.youtube.com/@${channelName}/videos`, {
-      headers: {
-        'Accept-Language': 'en',
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-        Cookie: 'CONSENT=YES+cb'
-      }
-    })
-    const text = await response.text()
-    const match = text.match(/var ytInitialData = (.+?);<\/script>/)
-    const json = JSON.parse(match[1].trim())
-    const videoTab = json.contents.twoColumnBrowseResultsRenderer.tabs.find(t => t.tabRenderer?.title === 'Videos')
-    const videoContents = videoTab.tabRenderer.content.richGridRenderer.contents
-
-    // Find all members-only video IDs from raw data
-    const membersOnlyIds = videoContents
-      .filter(v => v.richItemRenderer?.content?.videoRenderer?.badges?.some(
-        b => b.metadataBadgeRenderer?.style === 'BADGE_STYLE_TYPE_MEMBERS_ONLY'
-      ))
-      .map(v => v.richItemRenderer.content.videoRenderer.videoId)
-
-    assert.ok(membersOnlyIds.length > 0, 'Channel should have at least one members-only video')
-
-    // Now fetch via getVideosFor and verify none of the members-only IDs are included
-    const videos = await getVideosFor(channelName)
-    const foundMembersOnly = videos.filter(v => membersOnlyIds.includes(v.id))
-    assert.equal(foundMembersOnly.length, 0, `Found ${foundMembersOnly.length} members-only videos that should have been filtered: ${foundMembersOnly.map(v => v.id).join(', ')}`)
+    const videos = await getVideosFor(channelName, { includeMembersOnly: true })
+    const membersOnlyVideos = videos.filter(v => v.isMembersOnly)
+    assert.ok(membersOnlyVideos.length > 0)
   })
 
   test('gets single video', async () => {
-  // https://www.youtube.com/watch?v=qJZ1Ez28C-A
+    // https://www.youtube.com/watch?v=qJZ1Ez28C-A
     const video = await getVideo('qJZ1Ez28C-A')
     assert.equal(video.channelName, 'veritasium')
     assert.equal(video.title, 'Something Strange Happens When You Trust Quantum Mechanics')
