@@ -21,6 +21,6 @@
     "@web/test-runner": "^0.20.2",
     "sinon": "^21.0.0",
     "standard": "^17.1.2",
-    "undici": "^7.22.0"
+    "undici": "^7.24.0"
   }
 }
