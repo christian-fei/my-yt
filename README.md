@@ -98,6 +98,7 @@ docker run -d -p 3000:3000 -v $HOME/my-yt-data:/app/data christianfei/my-yt:late
 | AI_HOST | string  |  http://127.0.0.1:1234 |
 | AI_ENDPOINT | string  |  /v1/chat/completions |
 | AI_TEMPERATURE | string  |  0 |
+| UPDATE_INTERVAL_MINUTES | number  | 30 |
 
 
 **Simply set the env variables to your needs, by following the format above (e.g. url starting with "http", no ending slash, AI_ENDPOINT with leading slash and path)**

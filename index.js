@@ -13,7 +13,7 @@ async function main ({ port = 3000 } = {}) {
 
   let lastAdded = Date.now()
   runUpdateVideos(repo, connections)
-  setInterval(runUpdateVideos, 1000 * 60 * 30, repo, connections)
+  setInterval(runUpdateVideos, (+process.env.UPDATE_INTERVAL_MINUTES || 30) * 1000 * 60, repo, connections)
 
   createServer({ repo, state, connections })
     .listen(port, () => {
