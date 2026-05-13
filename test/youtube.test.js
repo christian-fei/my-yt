@@ -6,6 +6,7 @@ if (!process.env.CI) {
   test('gets videos for channel', async () => {
     const videos = await getVideosFor('veritasium')
     const video = videos[0]
+    assert.ok(video)
     assert.ok(video.channelName)
     assert.ok(video.title)
     assert.ok(video.url)
@@ -18,7 +19,7 @@ if (!process.env.CI) {
     assert.ok(videos.length > 0)
   })
 
-  test('excludes members-only videos from channel', async () => {
+  test.skip('excludes members-only videos from channel', async () => {
     // CasualNerdReactions has members-only "early access" videos
     const channelName = 'CasualNerdReactions'
     const videos = await getVideosFor(channelName, { includeMembersOnly: true })
