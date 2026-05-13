@@ -405,7 +405,7 @@ video-element, video-element video {
   overflow: hidden;
   overflow-y: hidden;
   z-index: 9000;
-  max-height: 50%;
+  max-height: 25rem;
   font-size: 1rem;
   padding: 0.5rem;
   background-color: var(--bg-primary);
@@ -427,7 +427,7 @@ video-element, video-element video {
 
 .state .lines {
   font-size: 1rem;
-  max-height: 25rem;
+  max-height: 20rem;
   overflow-y: scroll;
 }
 
