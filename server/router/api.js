@@ -22,31 +22,49 @@ const llmSettings = {
   temperature: process.env.AI_TEMPERATURE ?? llmDefaults.temperature
 }
 
+const routeTable = [
+  { path: '/api/channels', method: 'GET', handler: getChannelHandler, nargs: 3 },
+  { path: '/api/channels', method: 'POST', handler: addChannelHandler, nargs: 4 },
+  { path: '/api/channels', method: 'DELETE', handler: deleteChannelHandler, nargs: 3 },
+  { path: '/api/download-video', method: 'POST', handler: downloadVideoHandler, nargs: 5 },
+  { path: '/api/summarize-video', method: 'POST', handler: summarizeVideoHandler, nargs: 6 },
+  { path: '/api/ignore-video', method: 'POST', handler: ignoreVideoHandler, nargs: 4 },
+  { path: '/api/delete-video', method: 'POST', handler: deleteVideoHandler, nargs: 4 },
+  { path: '/api/videos', method: 'GET', handler: searchVideosHandler, nargs: 3 },
+  { path: '/api/video-quality', method: 'GET', handler: getVideoQualityHandler, nargs: 3 },
+  { path: '/api/video-quality', method: 'POST', handler: setVideoQualityHandler, nargs: 3 },
+  { path: '/api/disk-usage', method: 'GET', handler: diskUsageHandler, nargs: 3 },
+  { path: '/api/reclaim-disk-space', method: 'POST', handler: reclaimDiskSpaceHandler, nargs: 4 },
+  { path: '/api/transcode-videos', method: 'GET', handler: getTranscodeVideosHandler, nargs: 3 },
+  { path: '/api/transcode-videos', method: 'POST', handler: setTranscodeVideosHandler, nargs: 3 },
+  { path: '/api/excluded-terms', method: 'GET', handler: getExcludedTermsHandler, nargs: 3 },
+  { path: '/api/excluded-terms', method: 'POST', handler: addExcludedTermHandler, nargs: 3 },
+  { path: '/api/excluded-terms', method: 'DELETE', handler: removeExcludedTermHandler, nargs: 3 },
+  { pathRegex: /\/api\/videos\//, method: 'GET', handler: watchVideoHandler, nargs: 4 },
+  { pathRegex: /\/api\/captions\//, method: 'GET', handler: captionsHandler, nargs: 2 }
+]
+
 export default function apiHandler (req, res, repo, connections = [], state = {}) {
   const url = new URL(req.url, `http://${req.headers.host}`)
 
-  if (url.pathname === '/api/channels' && req.method === 'GET') { return getChannelHandler(req, res, repo) }
-  if (url.pathname === '/api/channels' && req.method === 'POST') { return addChannelHandler(req, res, repo, connections) }
-  if (url.pathname === '/api/channels' && req.method === 'DELETE') { return deleteChannelHandler(req, res, repo) }
-  if (url.pathname === '/api/download-video' && req.method === 'POST') { return downloadVideoHandler(req, res, repo, connections, state) }
-  if (url.pathname === '/api/summarize-video' && req.method === 'POST') { return summarizeVideoHandler(req, res, repo, connections, state, llmSettings) }
-  if (url.pathname === '/api/ignore-video' && req.method === 'POST') { return ignoreVideoHandler(req, res, repo, connections) }
-  if (url.pathname === '/api/delete-video' && req.method === 'POST') { return deleteVideoHandler(req, res, repo, connections) }
-  if (url.pathname === '/api/videos' && req.method === 'GET') { return searchVideosHandler(req, res, repo) }
-  if (url.pathname === '/api/video-quality' && req.method === 'GET') { return getVideoQualityHandler(req, res, repo) }
-  if (url.pathname === '/api/video-quality' && req.method === 'POST') { return setVideoQualityHandler(req, res, repo) }
-  if (url.pathname === '/api/disk-usage' && req.method === 'GET') { return diskUsageHandler(req, res, repo) }
-  if (url.pathname === '/api/reclaim-disk-space' && req.method === 'POST') { return reclaimDiskSpaceHandler(req, res, repo, connections) }
-  if (url.pathname === '/api/transcode-videos' && req.method === 'GET') { return getTranscodeVideosHandler(req, res, repo) }
-  if (url.pathname === '/api/transcode-videos' && req.method === 'POST') { return setTranscodeVideosHandler(req, res, repo) }
-  if (url.pathname === '/api/excluded-terms' && req.method === 'GET') { return getExcludedTermsHandler(req, res, repo) }
-  if (url.pathname === '/api/excluded-terms' && req.method === 'POST') { return addExcludedTermHandler(req, res, repo) }
-  if (url.pathname === '/api/excluded-terms' && req.method === 'DELETE') { return removeExcludedTermHandler(req, res, repo) }
-  if (url.pathname.match(/\/api\/videos\/.*/) && req.method === 'GET') { return watchVideoHandler(req, res, repo, connections) }
-  if (url.pathname.match(/\/api\/captions\/.*/) && req.method === 'GET') { return captionsHandler(req, res, repo) }
+  const match = routeTable.find(r => {
+    if (r.path !== undefined && url.pathname !== r.path) return false
+    if (r.pathRegex && !r.pathRegex.test(url.pathname)) return false
+    if (req.method !== r.method) return false
+    return true
+  })
 
-  res.writeHead(404)
-  return res.end()
+  if (!match) { res.writeHead(404); return res.end() }
+
+  const handler = match.handler
+  switch (match.nargs) {
+    case 2: return handler(req, res)
+    case 3: return handler(req, res, repo)
+    case 4: return handler(req, res, repo, connections)
+    case 5: return handler(req, res, repo, connections, state)
+    case 6: return handler(req, res, repo, connections, state, llmSettings)
+    default: return handler(req, res, repo, connections, state)
+  }
 }
 
 async function getChannelHandler (req, res, repo) {
