@@ -1,14 +1,17 @@
 import fs from 'fs'
 import { broadcastMessage, getQuery } from '../_helpers.js'
+import { getRepository } from '../../service-container.js'
 
-export function searchVideosHandler (req, res, repo, connections = [], state = {}) {
+export function searchVideosHandler (req, res, connections = [], state = {}) {
+  const repo = getRepository()
   const query = getQuery(req)
   const videos = repo.getVideos(query)
   res.writeHead(200, { 'Content-Type': 'application/json' })
   res.end(JSON.stringify(videos))
 }
 
-export function watchVideoHandler (req, res, repo, connections = []) {
+export function watchVideoHandler (req, res, connections = []) {
+  const repo = getRepository()
   const id = req.url.replace('/api/videos/', '').replace(/\.(webm|mp4)$/, '')
   const video = repo.getVideo(id)
   const location = video.location || `./data/videos/${id}.mp4`

@@ -1,7 +1,9 @@
 import { downloadVideo, isUnsupportedUrl, extractIdFromUrl, isYouTubeUrl } from '../../../lib/youtube.js'
 import { broadcastMessage, parseBody } from '../_helpers.js'
+import { getRepository } from '../../service-container.js'
 
-export async function downloadVideoHandler (req, res, repo, connections = [], state = {}) {
+export async function downloadVideoHandler (req, res, connections = [], state = {}) {
+  const repo = getRepository()
   const parsed = await parseBody(req, res)
   if (parsed === null) return
   let { id, external } = parsed
@@ -17,7 +19,7 @@ export async function downloadVideoHandler (req, res, repo, connections = [], st
   state.downloading[id] = { lines: [] }
 
   let broadcastNewVideoOnce = false
-  downloadVideo(id, repo, (message) => {
+  downloadVideo(id, (message) => {
     if (external && !broadcastNewVideoOnce) {
       broadcastMessage('new-videos', { videos: [repo.getVideo(id)] }, connections)
       broadcastNewVideoOnce = true

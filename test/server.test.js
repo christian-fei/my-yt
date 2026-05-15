@@ -1,20 +1,26 @@
+import os from 'os'
+import path from 'path'
 import { test, describe } from 'node:test'
 import fs from 'fs'
 import assert from 'assert'
 import { createServer } from '../server/http.js'
-import Repository from '../lib/repository.js'
+import { initRepository, resetForTesting } from '../server/service-container.js'
 
-let repo
+const serverTestDir = path.join(os.tmpdir(), 'my-yt-server-test')
 const state = {}
 const connections = []
+
 test.beforeEach(() => {
-  if (fs.existsSync('./test/data')) {
-    fs.rmSync('./test/data', { recursive: true })
+  const topDir = path.join(os.tmpdir(), 'my-yt-top-test')
+  resetForTesting(topDir)
+  if (fs.existsSync(topDir)) {
+    fs.rmSync(topDir, { recursive: true })
   }
-  repo = new Repository('./test/data')
+  initRepository(topDir)
 })
+
 test('starts server', async () => {
-  const server = createServer({ repo, state, connections })
+  const server = createServer({ state, connections })
   await new Promise(resolve => server.listen(3001, resolve))
   assert.equal(server.address().port, 3001)
   await new Promise(resolve => server.close(resolve))
@@ -23,10 +29,16 @@ test('starts server', async () => {
 describe('server - user flow', () => {
   let server
   test.before((cb) => {
-    server = createServer({ repo, state, connections })
+    resetForTesting(serverTestDir)
+    if (fs.existsSync(serverTestDir)) {
+      fs.rmSync(serverTestDir, { recursive: true })
+    }
+    initRepository(serverTestDir)
+    server = createServer({ state, connections })
     server.listen(3001, cb)
     console.log('listening server')
   }, { timeout: 10000 })
+
   test.after((cb) => {
     server.close(cb)
     console.log('closed server')
@@ -38,6 +50,7 @@ describe('server - user flow', () => {
     assert.equal(res.status, 200)
     assert.deepEqual(data, [])
   })
+
   test('add channel', { timeout: 10000 }, async () => {
     const resAddChannel = await fetch('http://0.0.0.0:3001/api/channels', {
       method: 'POST',
@@ -60,12 +73,14 @@ describe('server - user flow', () => {
     assert.equal(res.status, 200)
     assert.deepEqual(data, [{ name: 'veritasium' }])
   })
+
   test('get videos', { timeout: 5000 }, async () => {
     const res = await fetch('http://0.0.0.0:3001/api/videos')
     const data = await res.json()
     assert.equal(res.status, 200)
     assert.ok(data.length > 0)
   })
+
   test('delete channel', { timeout: 5000 }, async () => {
     const resDeleteChannel = await fetch('http://0.0.0.0:3001/api/channels', {
       method: 'DELETE',
@@ -80,6 +95,7 @@ describe('server - user flow', () => {
     assert.equal(resGetChannels.status, 200)
     assert.deepEqual(dataGetChannels, [])
   })
+
   test('get videos again', { timeout: 5000 }, async () => {
     const res = await fetch('http://0.0.0.0:3001/api/videos')
     const data = await res.json()

@@ -1,7 +1,9 @@
 import fs from 'fs'
 import { broadcastMessage, parseBody, getQuery } from '../_helpers.js'
+import { getRepository } from '../../service-container.js'
 
-export function diskUsageHandler (req, res, repo, connections = [], state = {}) {
+export function diskUsageHandler (req, res, connections = [], state = {}) {
+  const repo = getRepository()
   const onlyIgnored = getQuery(req).onlyIgnored === 'true'
   const videos = repo.getAllVideos()
 
@@ -21,7 +23,8 @@ export function diskUsageHandler (req, res, repo, connections = [], state = {}) 
   res.end(diskSpaceUsed.toFixed(3) + 'GB')
 }
 
-export async function reclaimDiskSpaceHandler (req, res, repo, connections = [], state = {}) {
+export async function reclaimDiskSpaceHandler (req, res, connections = [], state = {}) {
+  const repo = getRepository()
   const parsed = await parseBody(req, res)
   if (parsed === null) return
   const { onlyIgnored } = parsed

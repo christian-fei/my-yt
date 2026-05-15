@@ -41,7 +41,7 @@ class AddChannelForm extends HTMLElement {
     const loader = form.querySelector('.loader')
     const status = form.querySelector('.status')
 
-    const channelName = document.getElementById('channel-name').value
+    const channelName = input.value.trim()
     if (!channelName) return alert('empty channel name')
 
     freezeForm()

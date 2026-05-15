@@ -1,14 +1,23 @@
+import os from 'os'
+import path from 'path'
 import { test, describe } from 'node:test'
 import fs from 'fs'
 import assert from 'assert'
-import Repository from '../lib/repository.js'
+import { initRepository, resetForTesting } from '../server/service-container.js'
 
+const testDir = path.join(os.tmpdir(), 'my-yt-repo-test')
 let repo
+
 test.beforeEach(() => {
-  if (fs.existsSync('./test/data')) {
-    fs.rmSync('./test/data', { recursive: true })
+  resetForTesting(testDir)
+  if (fs.existsSync(testDir)) {
+    fs.rmSync(testDir, { recursive: true })
   }
-  repo = new Repository('./test/data')
+  repo = initRepository(testDir)
+})
+
+test.afterEach(() => {
+  resetForTesting(testDir)
 })
 
 const video1 = { id: '12345', channelName: 'tester', title: 'The Code', description: 'some description in common' }
@@ -17,8 +26,8 @@ const video2 = { id: '67890', channelName: 'programmer', title: 'The Error', des
 describe('repository', () => {
   test('empty repo provisions data folder', () => {
     assert.ok(repo)
-    assert.equal(repo.paths.videos, './test/data/videos.json')
-    assert.equal(repo.paths.channels, './test/data/channels.json')
+    assert.equal(repo.paths.videos, `${testDir}/videos.json`)
+    assert.equal(repo.paths.channels, `${testDir}/channels.json`)
     assert.equal(repo.getVideos().length, 0)
     assert.ok(fs.existsSync(repo.paths.videos))
     assert.ok(fs.existsSync(repo.paths.channels))
@@ -114,13 +123,16 @@ describe('repository', () => {
   test('gets video quality', () => {
     assert.equal(repo.getVideoQualitySetting(), 720)
   })
+
   test('sets video quality', () => {
     assert.ok(repo.setVideoQualitySetting(1080))
     assert.equal(repo.getVideoQualitySetting(), 1080)
   })
+
   test('gets transcode videos setting', () => {
     assert.equal(repo.getTranscodeVideosSetting(), true)
   })
+
   test('sets transcode videos setting', () => {
     repo.setTranscodeVideosSetting(false)
     assert.equal(repo.getTranscodeVideosSetting(), false)

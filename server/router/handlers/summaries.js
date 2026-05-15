@@ -1,7 +1,6 @@
 import { summarizeVideo } from '../../../lib/subtitles-summary.js'
 import { broadcastMessage, parseBody, llmSettings } from '../_helpers.js'
-
-export async function summarizeVideoHandler (req, res, repo, connections = [], state = {}) {
+export async function summarizeVideoHandler (req, res, connections = [], state = {}) {
   const parsed = await parseBody(req, res)
   if (parsed === null) return
   const { id } = parsed
@@ -9,7 +8,7 @@ export async function summarizeVideoHandler (req, res, repo, connections = [], s
   state.summarizing = state.summarizing || {}
   state.summarizing[id] = { lines: [] }
 
-  summarizeVideo(id, repo, llmSettings, (line) => {
+  summarizeVideo(id, llmSettings, (line) => {
     broadcastMessage('download-log-line', { line }, connections)
   })
     .then(({ summary, transcript }) =>

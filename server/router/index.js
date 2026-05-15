@@ -46,18 +46,18 @@ const routeMap = {
   'DELETE /api/excluded-terms': settings.removeExcludedTermHandler
 }
 
-export default function apiHandler (req, res, repo, connections = [], state = {}) {
+export default function apiHandler (req, res, connections = [], state = {}) {
   const path = req.url.split('?')[0]
 
   // Exact match with method
   const key = `${req.method} ${path}`
   if (routeMap[key]) {
-    return routeMap[key](req, res, repo, connections, state)
+    return routeMap[key](req, res, connections, state)
   }
 
   // Regex-style matches (path-based patterns with method check)
   if (req.method === 'GET' && path.startsWith('/api/videos/')) {
-    return videos.watchVideoHandler(req, res, repo, connections)
+    return videos.watchVideoHandler(req, res, connections)
   }
   if (req.method === 'GET' && path.startsWith('/api/captions/')) {
     return videos.captionsHandler(req, res)

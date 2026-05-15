@@ -246,6 +246,7 @@ class VideoElement extends HTMLElement {
 
   filterByChannelHandler (event) {
     const $searchInput = document.querySelector('#search')
+    if (!$searchInput) return
     const channel = `@${this.video.channelName}`
     $searchInput.value = ($searchInput && $searchInput.value !== channel) ? channel : ''
     $searchInput.dispatchEvent(new Event('input'))

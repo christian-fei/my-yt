@@ -1,22 +1,25 @@
+import os from 'os'
+import path from 'path'
 import { test } from 'node:test'
 import fs from 'fs'
 import assert from 'assert'
 import { searchVideosHandler } from '../server/router/index.js'
-import Repository from '../lib/repository.js'
+import { initRepository, resetForTesting } from '../server/service-container.js'
 
+const testDir = path.join(os.tmpdir(), 'my-yt-search-test')
 const req = {}
 const assertRes = (assertionCb) => ({
   writeHead: () => {},
   end: assertionCb
 })
 
-let repo
 test.beforeEach(() => {
-  if (fs.existsSync('./test/data')) {
-    fs.rmSync('./test/data', { recursive: true })
+  resetForTesting(testDir)
+  if (fs.existsSync(testDir)) {
+    fs.rmSync(testDir, { recursive: true })
   }
-  repo = new Repository('./test/data')
-  repo.upsertVideos([
+
+  initRepository(testDir).upsertVideos([
     {
       id: '1',
       channelName: 'SomeChannel',
@@ -46,18 +49,25 @@ test.beforeEach(() => {
     }
   ])
 })
+
+test.afterEach(() => {
+  resetForTesting(testDir)
+})
+
 test('gets all videos without filters, show only not ignored videos', () => {
   searchVideosHandler(req, assertRes(data => {
     assert.deepEqual(JSON.parse(data).length, 1)
-  }), repo)
+  }))
 })
+
 test('filters videos by channel name', () => {
   searchVideosHandler({ url: '?filter=@SomeChannel' }, assertRes(data => {
     assert.deepEqual(JSON.parse(data).length, 1)
-  }), repo)
+  }))
 })
+
 test('filters videos by title', () => {
   searchVideosHandler({ url: '?filter=A+video+title' }, assertRes(data => {
     assert.deepEqual(JSON.parse(data).length, 1)
-  }), repo)
+  }))
 })

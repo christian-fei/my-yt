@@ -1,13 +1,16 @@
 import { updateAndPersistVideosForChannel } from '../../../lib/update-videos.js'
 import { broadcastMessage, parseBody } from '../_helpers.js'
+import { getRepository } from '../../service-container.js'
 
-export function getChannelHandler (req, res, repo, connections = [], state = {}) {
+export function getChannelHandler (req, res, connections = [], state = {}) {
+  const repo = getRepository()
   const channels = repo.getChannels()
   res.writeHead(200, { 'Content-Type': 'application/json' })
   return res.end(JSON.stringify(channels))
 }
 
-export async function addChannelHandler (req, res, repo, connections = []) {
+export async function addChannelHandler (req, res, connections = []) {
+  const repo = getRepository()
   const parsed = await parseBody(req, res)
   if (parsed === null) return
   let { name } = parsed
@@ -19,7 +22,7 @@ export async function addChannelHandler (req, res, repo, connections = []) {
     return res.end('Channel already added')
   }
 
-  const videos = await updateAndPersistVideosForChannel(name, repo)
+  const videos = await updateAndPersistVideosForChannel(name)
   if (Array.isArray(videos)) {
     repo.addChannel(name)
     broadcastMessage('new-videos', { name, videos }, connections)
@@ -31,7 +34,8 @@ export async function addChannelHandler (req, res, repo, connections = []) {
   return res.end('Channel not found')
 }
 
-export async function deleteChannelHandler (req, res, repo, connections = [], state = {}) {
+export async function deleteChannelHandler (req, res, connections = [], state = {}) {
+  const repo = getRepository()
   const parsed = await parseBody(req, res)
   if (parsed === null) return
   let { name } = parsed
@@ -47,7 +51,8 @@ export async function deleteChannelHandler (req, res, repo, connections = [], st
   return res.end('Channel deleted')
 }
 
-export async function ignoreVideoHandler (req, res, repo, connections = [], state = {}) {
+export async function ignoreVideoHandler (req, res, connections = [], state = {}) {
+  const repo = getRepository()
   const parsed = await parseBody(req, res)
   if (parsed === null) return
   const { id, ignore } = parsed
@@ -57,7 +62,8 @@ export async function ignoreVideoHandler (req, res, repo, connections = [], stat
   return res.end(JSON.stringify(ignored))
 }
 
-export async function deleteVideoHandler (req, res, repo, connections = [], state = {}) {
+export async function deleteVideoHandler (req, res, connections = [], state = {}) {
+  const repo = getRepository()
   const parsed = await parseBody(req, res)
   if (parsed === null) return
   const { id } = parsed

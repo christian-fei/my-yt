@@ -1,12 +1,15 @@
 import { parseBody } from '../_helpers.js'
+import { getRepository } from '../../service-container.js'
 
-export function getVideoQualityHandler (req, res, repo, connections = [], state = {}) {
+export function getVideoQualityHandler (req, res, connections = [], state = {}) {
+  const repo = getRepository()
   const videoQuality = repo.getVideoQualitySetting()
   res.writeHead(200, { 'Content-Type': 'application/json' })
   res.end(JSON.stringify(videoQuality))
 }
 
-export async function setVideoQualityHandler (req, res, repo, connections = [], state = {}) {
+export async function setVideoQualityHandler (req, res, connections = [], state = {}) {
+  const repo = getRepository()
   const parsed = await parseBody(req, res)
   if (parsed === null) return
   const videoQuality = parsed
@@ -20,13 +23,15 @@ export async function setVideoQualityHandler (req, res, repo, connections = [], 
   res.end(JSON.stringify(newQuality))
 }
 
-export function getTranscodeVideosHandler (req, res, repo) {
+export function getTranscodeVideosHandler (req, res) {
+  const repo = getRepository()
   const transcodeVideos = repo.getTranscodeVideosSetting()
   res.writeHead(200, { 'Content-Type': 'application/json' })
   res.end(JSON.stringify(transcodeVideos))
 }
 
-export async function setTranscodeVideosHandler (req, res, repo) {
+export async function setTranscodeVideosHandler (req, res) {
+  const repo = getRepository()
   const parsed = await parseBody(req, res)
   if (parsed === null) return
   const transcodeVideos = parsed
@@ -36,13 +41,15 @@ export async function setTranscodeVideosHandler (req, res, repo) {
   res.end()
 }
 
-export async function getExcludedTermsHandler (req, res, repo, connections = [], state = {}) {
+export async function getExcludedTermsHandler (req, res, connections = [], state = {}) {
+  const repo = getRepository()
   const excludedTerms = repo.getExcludedTerms()
   res.writeHead(200, { 'Content-Type': 'application/json' })
   res.end(JSON.stringify(excludedTerms))
 }
 
-export async function addExcludedTermHandler (req, res, repo) {
+export async function addExcludedTermHandler (req, res) {
+  const repo = getRepository()
   const parsed = await parseBody(req, res)
   if (parsed === null) return
   const term = parsed.term
@@ -51,7 +58,8 @@ export async function addExcludedTermHandler (req, res, repo) {
   res.end()
 }
 
-export async function removeExcludedTermHandler (req, res, repo) {
+export async function removeExcludedTermHandler (req, res) {
+  const repo = getRepository()
   const parsed = await parseBody(req, res)
   if (parsed === null) return
   const term = parsed.term

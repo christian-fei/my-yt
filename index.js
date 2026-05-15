@@ -1,28 +1,28 @@
 import os from 'os'
-import Repository from './lib/repository.js'
+import { initRepository } from './server/service-container.js'
 import { createServer } from './server/http.js'
 import stateFactory from './server/state-factory.js'
 import { broadcastSSE } from './server/sse.js'
 import { updateAndPersistVideos } from './lib/update-videos.js'
 
 async function main ({ port = 3000 } = {}) {
-  const repo = new Repository()
+  initRepository()
   const connections = []
   const state = stateFactory((updatedState) =>
     broadcastSSE(JSON.stringify({ type: 'state', state: updatedState }), connections))
 
   let lastAdded = Date.now()
-  runUpdateVideos(repo, connections)
-  setInterval(runUpdateVideos, (+process.env.UPDATE_INTERVAL_MINUTES || 30) * 1000 * 60, repo, connections)
+  runUpdateVideos(connections)
+  setInterval(runUpdateVideos, (+process.env.UPDATE_INTERVAL_MINUTES || 30) * 1000 * 60, connections)
 
-  createServer({ repo, state, connections })
+  createServer({ state, connections })
     .listen(port, () => {
       console.log(`Server running at http://${os.hostname()}:${port} (or http://localhost:${port})`)
     })
 
-  function runUpdateVideos (repo, connections) {
+  function runUpdateVideos (connections) {
     console.log('update videos')
-    updateAndPersistVideos(repo, (err, data) => {
+    updateAndPersistVideos((err, data) => {
       if (err) return console.error(err)
       const { name, videos } = data
       const newVideos = videos.filter(v => v.addedAt > lastAdded).filter(v => !v.ignored)

@@ -3,9 +3,7 @@ import { URL } from 'url'
 import { handleSSE, broadcastSSE } from './sse.js'
 import apiHandler from './router/index.js'
 import appHandler from './router/app.js'
-import Repository from '../lib/repository.js'
-
-export function createServer ({ repo = new Repository(), connections = [], state }) {
+export function createServer ({ connections = [], state }) {
   return http.createServer(async (req, res) => {
     try {
       const url = new URL(req.url, `http://${req.headers.host}`)
@@ -15,7 +13,7 @@ export function createServer ({ repo = new Repository(), connections = [], state
         return broadcastSSE(JSON.stringify({ type: 'state', state }), connections)
       }
 
-      if (url.pathname.startsWith('/api/')) return apiHandler(req, res, repo, connections, state)
+      if (url.pathname.startsWith('/api/')) return apiHandler(req, res, connections, state)
 
       return appHandler(req, res)
     } catch (error) {
