@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node --env-file-if-exists=.env index.js",
     "test": "npm run lint && node --test --test-concurrency 1 test/*.test.js",
-    "test:client": "web-test-runner client/test/**/*.test.js --node-resolve --concurrency 1",
+    "test:client": "web-test-runner --config web-test-runner.config.mjs",
     "lint": "standard"
   },
   "keywords": [],
