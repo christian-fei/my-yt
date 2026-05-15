@@ -25,21 +25,26 @@ export default function appHandler (req, res) {
   const url = new URL(req.url, `http://${req.headers.host}`)
 
   if (staticFiles[url.pathname]) {
-    return fileHandler(`client${url.pathname}`, staticFiles[url.pathname])(req, res)
+    return fileHandler(`client${url.pathname}`, staticFiles[url.pathname], req, res)
   }
   if (jsFiles.includes(url.pathname)) {
-    return fileHandler(`client${url.pathname}`, 'application/javascript')(req, res)
+    return fileHandler(`client${url.pathname}`, 'application/javascript', req, res)
   }
   if (assetFiles[url.pathname]) {
-    return fileHandler(`client/${assetFiles[url.pathname]}`, 'image/png')(req, res)
+    return fileHandler(`client/${assetFiles[url.pathname]}`, 'image/png', req, res)
   }
 
-  return fileHandler('client/index.html', 'text/html')(req, res)
+  return fileHandler('client/index.html', 'text/html', req, res)
 }
 
-function fileHandler (filePath, contentType) {
-  return (req, res) => {
+async function fileHandler (filePath, contentType, req, res) {
+  try {
+    const content = await fs.promises.readFile(filePath, 'utf8')
     res.writeHead(200, { 'Content-Type': contentType })
-    res.end(fs.readFileSync(filePath, 'utf8'))
+    res.end(content)
+  } catch (err) {
+    console.error(`Error serving ${filePath}:`, err.message)
+    res.writeHead(404, { 'Content-Type': 'text/plain' })
+    res.end('Not Found')
   }
 }
