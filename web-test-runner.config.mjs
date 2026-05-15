@@ -7,7 +7,10 @@ export default {
   setupFiles: ['client/test/setup.js'],
   browsers: [
     puppeteerLauncher({
-      launchOptions: { headless: true }
+      launchOptions: {
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+      }
     })
   ]
 }
