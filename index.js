@@ -25,6 +25,7 @@ async function main ({ port = 3000 } = {}) {
     updateAndPersistVideos((err, data) => {
       if (err) return console.error(err)
       const { name, videos } = data
+      if (!Array.isArray(videos)) return console.error(`Failed to fetch videos for ${name}`)
       const newVideos = videos.filter(v => v.addedAt > lastAdded).filter(v => !v.ignored)
       lastAdded = Date.now()
       if (newVideos.length > 0) {
