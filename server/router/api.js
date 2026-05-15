@@ -27,25 +27,25 @@ function broadcastMessage (type, payload, connections) {
 }
 
 const routeTable = [
-  { path: '/api/channels', method: 'GET', handler: getChannelHandler, nargs: 3 },
-  { path: '/api/channels', method: 'POST', handler: addChannelHandler, nargs: 4 },
-  { path: '/api/channels', method: 'DELETE', handler: deleteChannelHandler, nargs: 3 },
-  { path: '/api/download-video', method: 'POST', handler: downloadVideoHandler, nargs: 5 },
-  { path: '/api/summarize-video', method: 'POST', handler: summarizeVideoHandler, nargs: 6 },
-  { path: '/api/ignore-video', method: 'POST', handler: ignoreVideoHandler, nargs: 4 },
-  { path: '/api/delete-video', method: 'POST', handler: deleteVideoHandler, nargs: 4 },
-  { path: '/api/videos', method: 'GET', handler: searchVideosHandler, nargs: 3 },
-  { path: '/api/video-quality', method: 'GET', handler: getVideoQualityHandler, nargs: 3 },
-  { path: '/api/video-quality', method: 'POST', handler: setVideoQualityHandler, nargs: 3 },
-  { path: '/api/disk-usage', method: 'GET', handler: diskUsageHandler, nargs: 3 },
-  { path: '/api/reclaim-disk-space', method: 'POST', handler: reclaimDiskSpaceHandler, nargs: 4 },
-  { path: '/api/transcode-videos', method: 'GET', handler: getTranscodeVideosHandler, nargs: 3 },
-  { path: '/api/transcode-videos', method: 'POST', handler: setTranscodeVideosHandler, nargs: 3 },
-  { path: '/api/excluded-terms', method: 'GET', handler: getExcludedTermsHandler, nargs: 3 },
-  { path: '/api/excluded-terms', method: 'POST', handler: addExcludedTermHandler, nargs: 3 },
-  { path: '/api/excluded-terms', method: 'DELETE', handler: removeExcludedTermHandler, nargs: 3 },
-  { pathRegex: /\/api\/videos\//, method: 'GET', handler: watchVideoHandler, nargs: 4 },
-  { pathRegex: /\/api\/captions\//, method: 'GET', handler: captionsHandler, nargs: 2 }
+  { path: '/api/channels', method: 'GET', handler: getChannelHandler },
+  { path: '/api/channels', method: 'POST', handler: addChannelHandler },
+  { path: '/api/channels', method: 'DELETE', handler: deleteChannelHandler },
+  { path: '/api/download-video', method: 'POST', handler: downloadVideoHandler },
+  { path: '/api/summarize-video', method: 'POST', handler: summarizeVideoHandler },
+  { path: '/api/ignore-video', method: 'POST', handler: ignoreVideoHandler },
+  { path: '/api/delete-video', method: 'POST', handler: deleteVideoHandler },
+  { path: '/api/videos', method: 'GET', handler: searchVideosHandler },
+  { path: '/api/video-quality', method: 'GET', handler: getVideoQualityHandler },
+  { path: '/api/video-quality', method: 'POST', handler: setVideoQualityHandler },
+  { path: '/api/disk-usage', method: 'GET', handler: diskUsageHandler },
+  { path: '/api/reclaim-disk-space', method: 'POST', handler: reclaimDiskSpaceHandler },
+  { path: '/api/transcode-videos', method: 'GET', handler: getTranscodeVideosHandler },
+  { path: '/api/transcode-videos', method: 'POST', handler: setTranscodeVideosHandler },
+  { path: '/api/excluded-terms', method: 'GET', handler: getExcludedTermsHandler },
+  { path: '/api/excluded-terms', method: 'POST', handler: addExcludedTermHandler },
+  { path: '/api/excluded-terms', method: 'DELETE', handler: removeExcludedTermHandler },
+  { pathRegex: /\/api\/videos\//, method: 'GET', handler: watchVideoHandler },
+  { pathRegex: /\/api\/captions\//, method: 'GET', handler: captionsHandler }
 ]
 
 export default function apiHandler (req, res, repo, connections = [], state = {}) {
@@ -60,18 +60,10 @@ export default function apiHandler (req, res, repo, connections = [], state = {}
 
   if (!match) { res.writeHead(404); return res.end() }
 
-  const handler = match.handler
-  switch (match.nargs) {
-    case 2: return handler(req, res)
-    case 3: return handler(req, res, repo)
-    case 4: return handler(req, res, repo, connections)
-    case 5: return handler(req, res, repo, connections, state)
-    case 6: return handler(req, res, repo, connections, state, llmSettings)
-    default: return handler(req, res, repo, connections, state)
-  }
+  return match.handler(req, res, repo, connections, state)
 }
 
-async function getChannelHandler (req, res, repo) {
+async function getChannelHandler (req, res, repo, connections = [], state = {}) {
   const channels = repo.getChannels()
   res.writeHead(200, { 'Content-Type': 'application/json' })
   return res.end(JSON.stringify(channels))
@@ -101,7 +93,7 @@ async function addChannelHandler (req, res, repo, connections = []) {
   return res.end('Channel not found')
 }
 
-async function deleteChannelHandler (req, res, repo) {
+async function deleteChannelHandler (req, res, repo, connections = [], state = {}) {
   const parsed = await parseBody(req, res)
   if (parsed === null) return
   let { name } = parsed
@@ -167,7 +159,7 @@ async function downloadVideoHandler (req, res, repo, connections = [], state = {
   res.end('Download started')
 }
 
-async function summarizeVideoHandler (req, res, repo, connections = [], state = {}, llmSettings = {}) {
+async function summarizeVideoHandler (req, res, repo, connections = [], state = {}) {
   const parsed = await parseBody(req, res)
   if (parsed === null) return
   const { id } = parsed
@@ -192,7 +184,7 @@ async function summarizeVideoHandler (req, res, repo, connections = [], state = 
   res.end('Download started')
 }
 
-async function ignoreVideoHandler (req, res, repo, connections = []) {
+async function ignoreVideoHandler (req, res, repo, connections = [], state = {}) {
   const parsed = await parseBody(req, res)
   if (parsed === null) return
   const { id, ignore } = parsed
@@ -202,7 +194,7 @@ async function ignoreVideoHandler (req, res, repo, connections = []) {
   return res.end(JSON.stringify(ignored))
 }
 
-async function deleteVideoHandler (req, res, repo, connections = []) {
+async function deleteVideoHandler (req, res, repo, connections = [], state = {}) {
   const parsed = await parseBody(req, res)
   if (parsed === null) return
   const { id } = parsed
@@ -212,20 +204,20 @@ async function deleteVideoHandler (req, res, repo, connections = []) {
   res.end()
 }
 
-export function searchVideosHandler (req, res, repo) {
+export function searchVideosHandler (req, res, repo, connections = [], state = {}) {
   const query = getQuery(req)
   const videos = repo.getVideos(query)
   res.writeHead(200, { 'Content-Type': 'application/json' })
   res.end(JSON.stringify(videos))
 }
 
-function getVideoQualityHandler (req, res, repo) {
+function getVideoQualityHandler (req, res, repo, connections = [], state = {}) {
   const videoQuality = repo.getVideoQualitySetting()
   res.writeHead(200, { 'Content-Type': 'application/json' })
   res.end(JSON.stringify(videoQuality))
 }
 
-async function setVideoQualityHandler (req, res, repo) {
+async function setVideoQualityHandler (req, res, repo, connections = [], state = {}) {
   const parsed = await parseBody(req, res)
   if (parsed === null) return
   const videoQuality = parsed
@@ -239,7 +231,7 @@ async function setVideoQualityHandler (req, res, repo) {
   res.end(JSON.stringify(newQuality))
 }
 
-function diskUsageHandler (req, res, repo) {
+function diskUsageHandler (req, res, repo, connections = [], state = {}) {
   const onlyIgnored = getQuery(req).onlyIgnored === 'true'
   const videos = repo.getAllVideos()
 
@@ -259,7 +251,7 @@ function diskUsageHandler (req, res, repo) {
   res.end(diskSpaceUsed.toFixed(3) + 'GB')
 }
 
-async function reclaimDiskSpaceHandler (req, res, repo, connections = []) {
+async function reclaimDiskSpaceHandler (req, res, repo, connections = [], state = {}) {
   const parsed = await parseBody(req, res)
   if (parsed === null) return
   const { onlyIgnored } = parsed
@@ -291,7 +283,7 @@ async function reclaimDiskSpaceHandler (req, res, repo, connections = []) {
   res.end()
 }
 
-async function getExcludedTermsHandler (req, res, repo) {
+async function getExcludedTermsHandler (req, res, repo, connections = [], state = {}) {
   const excludedTerms = repo.getExcludedTerms()
   res.writeHead(200, { 'Content-Type': 'application/json' })
   res.end(JSON.stringify(excludedTerms))
