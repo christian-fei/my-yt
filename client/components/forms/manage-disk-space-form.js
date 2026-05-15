@@ -1,4 +1,6 @@
 /* global HTMLElement, customElements, confirm */
+import { ENDPOINTS } from '../../lib/api.js'
+
 class ManageDiskSpaceForm extends HTMLElement {
   connectedCallback () {
     this.render()
@@ -43,7 +45,7 @@ class ManageDiskSpaceForm extends HTMLElement {
   updateDiskSpaceUsed () {
     const onlyIgnored = this.querySelector('#delete-only-ignored').checked
     const $diskUsage = this.querySelector('#disk-usage')
-    fetch(onlyIgnored ? '/api/disk-usage?onlyIgnored=true' : '/api/disk-usage')
+    fetch(onlyIgnored ? `${ENDPOINTS.DISK_USAGE}?onlyIgnored=true` : ENDPOINTS.DISK_USAGE)
       .then(response => response.text())
       .then((diskSpaceUsed) => {
         $diskUsage.innerHTML = /* html */`Currently <span id="disk-space-used">${diskSpaceUsed}</span> of disk space used`
@@ -56,7 +58,7 @@ class ManageDiskSpaceForm extends HTMLElement {
     if (!confirm('About to delete downloaded videos, are you sure?')) return
     const onlyIgnored = this.querySelector('#delete-only-ignored').checked
     const $diskUsage = this.querySelector('#disk-usage')
-    fetch('/api/reclaim-disk-space', {
+    fetch(ENDPOINTS.RECLAIM_DISK_SPACE, {
       method: 'POST',
       body: JSON.stringify({ onlyIgnored })
     })

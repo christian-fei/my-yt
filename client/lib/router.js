@@ -1,6 +1,7 @@
 /* global MutationObserver, history, PopStateEvent, location, dispatchEvent */
 import { applyShowBigPlayer, applyShowThumbnails } from '../lib/utils.js'
 import Store from '../lib/store.js'
+import { ENDPOINTS } from '../lib/api.js'
 const store = new Store()
 
 const routes = {
@@ -14,7 +15,7 @@ const routes = {
 
       document.querySelector('search-videos').searchHandler()
 
-      const channels = await fetch('/api/channels').then(res => res.json())
+      const channels = await fetch(ENDPOINTS.CHANNELS).then(res => res.json())
       document.querySelector('channels-list').dataset.list = JSON.stringify(channels.map(c => c.name).filter(Boolean))
 
       document.querySelector('empty-state').dataset.hasChannels = channels.length > 0

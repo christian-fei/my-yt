@@ -1,10 +1,12 @@
 /* global HTMLElement, customElements */
+import { ENDPOINTS } from '../../lib/api.js'
+
 class VideoQualityForm extends HTMLElement {
   connectedCallback () {
     this.render()
     this.registerEvents()
 
-    fetch('/api/video-quality')
+    fetch(ENDPOINTS.VIDEO_QUALITY)
       .then(response => response.json())
       .then((videoQuality) => {
         this.querySelector('#video-quality').value = +videoQuality
@@ -46,7 +48,7 @@ class VideoQualityForm extends HTMLElement {
 
   setVideoQualityHandler (event) {
     event.preventDefault()
-    fetch('/api/video-quality', {
+    fetch(ENDPOINTS.VIDEO_QUALITY, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: event.target.value

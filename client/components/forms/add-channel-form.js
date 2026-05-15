@@ -1,4 +1,6 @@
 /* global HTMLElement, customElements, alert */
+import { ENDPOINTS } from '../../lib/api.js'
+
 class AddChannelForm extends HTMLElement {
   connectedCallback () {
     this.render()
@@ -44,7 +46,7 @@ class AddChannelForm extends HTMLElement {
 
     freezeForm()
 
-    fetch('/api/channels', {
+    fetch(ENDPOINTS.CHANNELS, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: channelName })

@@ -1,5 +1,6 @@
 /* global HTMLElement, customElements, document */
 import { addToast } from '../lib/utils.js'
+import { ENDPOINTS } from '../lib/api.js'
 
 const searchEventSupported = 'search' in document.createElement('input')
 console.log({ searchEventSupported })
@@ -88,7 +89,7 @@ class SearchVideos extends HTMLElement {
 
     if (searchTerm.match('https?://')) {
       addToast('Downloading video...')
-      fetch('/api/download-video', {
+      fetch(ENDPOINTS.DOWNLOAD_VIDEO, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: searchTerm, external: true })
@@ -119,7 +120,7 @@ class SearchVideos extends HTMLElement {
     const query = `?filter=${encodeURIComponent(searchTerm)}${excluded ? '&excluded=true' : ''}${downloaded ? '&downloaded=true' : ''}${ignored ? '&ignored=true' : ''}${summarized ? '&summarized=true' : ''}`
     window.history.pushState({}, '', query)
 
-    fetch(`/api/videos${query}`)
+    fetch(ENDPOINTS.VIDEOS + query)
       .then(res => res.json())
       .then((videos) => {
         const $videosContainer = document.querySelector('videos-container')

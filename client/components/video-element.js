@@ -1,6 +1,7 @@
 /* global HTMLElement, customElements, confirm */
 import { addClickListener, removeClickListener, addToast } from '../lib/utils.js'
 import Store from '../lib/store.js'
+import { ENDPOINTS } from '../lib/api.js'
 const store = new Store()
 
 class VideoElement extends HTMLElement {
@@ -135,13 +136,13 @@ class VideoElement extends HTMLElement {
     event.preventDefault()
     this.querySelector('.play.video-placeholder').outerHTML = /* html */`
     <video controls playsinline style="user-select: none; width: 100%;">
-      <source src="/api/videos/${this.video.id}.${this.video.format || 'mp4'}" type="video/${this.video.format || 'mp4'}" />
+      <source src="${ENDPOINTS.VIDEOS}/${this.video.id}.${this.video.format || 'mp4'}" type="video/${this.video.format || 'mp4'}" />
       ${store.get(store.showCaptionsKey)
-        ? /* html */`<track default kind="captions" srclang="en" src="/api/captions/${this.video.id}" />`
+        ? /* html */`<track default kind="captions" srclang="en" src="${ENDPOINTS.CAPTIONS}/${this.video.id}" />`
         : ''}
       <p>
         Your browser does not support the video tag.
-        Download the video instead <a href="/api/videos/${this.video.id}" target="_blank">here</a>
+        Download the video instead <a href="${ENDPOINTS.VIDEOS}/${this.video.id}" target="_blank">here</a>
       </p>
     </video>`
 
@@ -160,7 +161,7 @@ class VideoElement extends HTMLElement {
 
     addToast('Downloading video...')
 
-    fetch('/api/download-video', {
+    fetch(ENDPOINTS.DOWNLOAD_VIDEO, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: this.video.id })
@@ -171,7 +172,7 @@ class VideoElement extends HTMLElement {
   deleteVideoHandler (event) {
     event.preventDefault()
     if (!confirm('About to delete video files, are you sure?')) return
-    fetch('/api/delete-video', {
+    fetch(ENDPOINTS.DELETE_VIDEO, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: this.video.id })
@@ -196,7 +197,7 @@ class VideoElement extends HTMLElement {
 
     addToast('Summarizing video...')
 
-    fetch('/api/summarize-video', {
+    fetch(ENDPOINTS.SUMMARIZE_VIDEO, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: this.video.id })
@@ -222,7 +223,7 @@ class VideoElement extends HTMLElement {
   toggleIgnoreVideoHandler (event) {
     event.preventDefault()
 
-    fetch('/api/ignore-video', {
+    fetch(ENDPOINTS.IGNORE_VIDEO, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: this.video.id, ignore: !this.video.ignored })

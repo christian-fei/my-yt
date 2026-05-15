@@ -1,5 +1,6 @@
 /* global HTMLElement, customElements, alert, confirm */
 import { addClickListener, removeClickListener } from '../../lib/utils.js'
+import { ENDPOINTS } from '../../lib/api.js'
 class ManageChannelsForm extends HTMLElement {
   connectedCallback () {
     this.render()
@@ -11,7 +12,7 @@ class ManageChannelsForm extends HTMLElement {
   }
 
   fetchData () {
-    fetch('/api/channels')
+    fetch(ENDPOINTS.CHANNELS)
       .then(res => res.json())
       .then(channels => {
         const $container = this.querySelector('#manage-channels')
@@ -51,7 +52,7 @@ class ManageChannelsForm extends HTMLElement {
     if (!channelName) return alert('empty channel name')
     if (!confirm(`Do you want to delete the channel ${channelName}?`)) return
 
-    fetch('/api/channels', {
+    fetch(ENDPOINTS.CHANNELS, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: channelName })

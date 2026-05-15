@@ -1,4 +1,6 @@
 /* global HTMLElement, customElements, confirm */
+import { ENDPOINTS } from '../../lib/api.js'
+
 class ExcludedTermsForm extends HTMLElement {
   connectedCallback () {
     this.render()
@@ -43,7 +45,7 @@ class ExcludedTermsForm extends HTMLElement {
     event.preventDefault()
     const term = event.target.value.trim()
     if (event.key === 'Enter' && term) {
-      fetch('/api/excluded-terms', {
+      fetch(ENDPOINTS.EXCLUDED_TERMS, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ term })
@@ -57,7 +59,7 @@ class ExcludedTermsForm extends HTMLElement {
   }
 
   fetchExcludedTermsHandler () {
-    fetch('/api/excluded-terms')
+    fetch(ENDPOINTS.EXCLUDED_TERMS)
       .then(response => response.json())
       .then(data => {
         const $excludedTerms = this.querySelector('#excluded-terms')
@@ -69,7 +71,7 @@ class ExcludedTermsForm extends HTMLElement {
           $excludedTerms.appendChild($li)
           $li.addEventListener('click', () => {
             if (!confirm('Remove "' + term + '" from excluded terms?')) return
-            fetch('/api/excluded-terms', {
+            fetch(ENDPOINTS.EXCLUDED_TERMS, {
               method: 'DELETE',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ term })

@@ -1,10 +1,12 @@
 /* global HTMLElement, customElements */
+import { ENDPOINTS } from '../../lib/api.js'
+
 class TranscodeVideosForm extends HTMLElement {
   connectedCallback () {
     this.render()
     this.registerEvents()
 
-    fetch('/api/transcode-videos')
+    fetch(ENDPOINTS.TRANSCODE_VIDEOS)
       .then(response => response.json())
       .then((transcodeVideos) => {
         this.querySelector('#transcode-videos').checked = transcodeVideos
@@ -41,7 +43,7 @@ class TranscodeVideosForm extends HTMLElement {
 
   setTranscodeVideosHandler (event) {
     event.preventDefault()
-    fetch('/api/transcode-videos', {
+    fetch(ENDPOINTS.TRANSCODE_VIDEOS, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(event.target.checked)
