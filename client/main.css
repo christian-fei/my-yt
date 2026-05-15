@@ -22,6 +22,9 @@
   --details-border: #f7f7f7;
   --bg-hover:#e0e0e0;
   --bg-active:#d0d0d0;
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
+  --focus-ring: 0 0 0 3px rgba(52, 152, 219, 0.2);
 
   /* Filter button colors */
   --filter-button-bg: #f0f0f0;
@@ -42,12 +45,14 @@
 }
 
 body {
-  font-family: Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
   margin: 20px;
   background-color: var(--bg-primary);
   color: var(--text-primary);
   padding-bottom: 3em;
   overflow-y: scroll;
+  font-size: 15px;
+  line-height: 1.6;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -88,7 +93,11 @@ body {
     --backdrop-gradient-end: #000000;
 
     /* shadows */
-    --button-shadow: 0 0 2px rgba(255, 255, 255, 0.3)
+    --button-shadow: 0 0 2px rgba(255, 255, 255, 0.3),
+                     0 1px 3px rgba(0, 0, 0, 0.3);
+    --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    --card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.4);
+    --focus-ring: 0 0 0 3px rgba(90, 176, 237, 0.3);
   }
 
   body {
@@ -172,9 +181,16 @@ form {
 input[type="text"], input[type="url"], input[type="search"] {
   background-color: var(--bg-input);
   color: var(--text-primary);
-  padding: 4px 8px;
-  border-radius: 3px;
-  border: 2px solid var(--details-border);
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border-light);
+  font-size: 15px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+input[type="text"]:focus, input[type="url"]:focus, input[type="search"]:focus {
+  outline: none;
+  border-color: var(--active-channel);
+  box-shadow: var(--focus-ring);
 }
 
 #excluded-terms li {
@@ -213,12 +229,12 @@ button, select, input[type="checkbox"], input[type="radio"] {
   background-color: var(--bg-input);
   color: var(--text-primary);
   text-align: center;
-  font-size: 16px;
-  padding: 6px 8px;
-  border-radius: 3px;
-  border: none;
+  font-size: 15px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border-light);
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   box-shadow: var(--button-shadow);
 }
 
@@ -257,9 +273,16 @@ button:disabled, select:disabled, input[type="checkbox"]:disabled, input[type="r
 .channels-container .channel {
   cursor: pointer;
   font-weight: bold;
+  padding: 4px 10px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+.channels-container .channel:hover {
+  background-color: var(--bg-hover);
 }
 .channels-container .channel.active {
   color: var(--active-channel);
+  background-color: var(--bg-hover);
 }
 
 .videos-container, videos-container {
@@ -267,7 +290,7 @@ button:disabled, select:disabled, input[type="checkbox"]:disabled, input[type="r
   justify-content: space-around;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
+  gap: 14px;
   margin: 10px 0 0 0;
 }
 
@@ -281,11 +304,17 @@ video, video:focus {
   text-align: left;
   text-decoration: none;
   font-weight: bold;
-  padding: 5px;
+  padding: 10px;
   align-self: flex-start;
   margin: 5px 0 10px 0;
   user-select: none;
   -webkit-user-select: none;
+  border-radius: 8px;
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+.video:hover {
+  box-shadow: var(--card-shadow-hover);
+  transform: translateY(-2px);
 }
 .video .action.ignore {
   position: absolute;
@@ -295,8 +324,9 @@ video, video:focus {
   background-color: var(--ignore-button-bg);
   color: var(--text-primary);
   font-size: 0.8rem;
-  padding: 0.75rem 1.5rem;
+  padding: 0.5rem 1rem;
   cursor: pointer;
+  border-radius: 0 8px 0 6px;
 }
 .video .title {
   margin-top: 7px;
@@ -305,11 +335,13 @@ video, video:focus {
   max-height: 2.5rem;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: var(--text-primary)
+  color: var(--text-primary);
+  font-size: 14px;
 }
 .video img {
   width: 100%;
   height: auto;
+  border-radius: 4px;
 }
 .hide-thumbnails .video img {
   display: none !important;
@@ -318,7 +350,7 @@ video, video:focus {
 
 }
 .video span, .video a {
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .video span.action, .video a {
@@ -328,7 +360,7 @@ video, video:focus {
   color: var(--text-hover) !important;
 }
 .video a {
-  font-size: 12px;
+  font-size: 13px;
   text-decoration: none;
   color: var(--text-primary);
 }
@@ -372,6 +404,7 @@ video-element, video-element video {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  border-radius: 4px;
 }
 .play-icon {
   position: relative;
@@ -406,11 +439,12 @@ video-element, video-element video {
   overflow-y: hidden;
   z-index: 9000;
   max-height: 25rem;
-  font-size: 1rem;
+  font-size: 13px;
   padding: 0.5rem;
   background-color: var(--bg-primary);
   color: var(--text-primary);
   border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 .state > div {
   margin-top: 0.5rem;
@@ -426,7 +460,7 @@ video-element, video-element video {
 }
 
 .state .lines {
-  font-size: 1rem;
+  font-size: 13px;
   max-height: 20rem;
   overflow-y: scroll;
 }
@@ -445,6 +479,8 @@ body.dialog-opened {
 }
 dialog {
   max-width: 800px;
+  border-radius: 12px;
+  padding: 24px;
 }
 
 body > header {
@@ -454,10 +490,10 @@ body > header {
   padding: 1em 0.5em 0;
   margin-bottom: 1rem;
   overflow: hidden;
-  background-color: inherit;
-  font-size: 1.15rem;
+  background-color: var(--bg-primary);
+  font-size: 1.1rem;
   /* fade out from bottom outside */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 .align-start {
   align-items: flex-start;
@@ -482,13 +518,17 @@ search-videos {
   display: block;
   margin: 0 auto;
   width: 80%;
-  border: 0;
-  outline: 0;
+  border: 1px solid var(--border-light);
+  outline: none;
   margin: 0;
   padding-right: 1rem;
   padding-left: 1rem;
-  padding-top: 1rem;
-  padding-bottom: 1rem;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+#search:focus {
+  border-color: var(--active-channel);
+  box-shadow: var(--focus-ring);
 }
 @media all and (max-width: 60em) {
   #search {
@@ -521,8 +561,8 @@ search-videos {
 
 details {
   padding: 10px;
-  border: 5px solid var(--details-border);
-  border-radius: 3px;
+  border: 1px solid var(--details-border);
+  border-radius: 6px;
 }
 
 #summary pre {
@@ -545,10 +585,11 @@ summary:hover {
 #notifications-container > * {
   padding: 10px 20px;
   margin: 0 0 10px;
-  border-radius: 5px;
+  border-radius: 8px;
   background: rgba(0,0,0,0.95);
   color: #fff;
   z-index: 999;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 #filters-container button {
@@ -556,14 +597,17 @@ summary:hover {
   align-items: center;
   justify-content: center;
   margin: 0.5em;
-  padding: 0.5em 1em;
-  font-size: 1rem;
+  padding: 8px 16px;
+  font-size: 14px;
   background-color: var(--filter-button-bg);
-  border: none;
+  border: 1px solid var(--border-light);
   cursor: pointer;
-  transition: background-color 0.3s ease;
-  border-radius: 5px;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  border-radius: 6px;
   color: var(--filter-button-text);
+}
+#filters-container button:hover {
+  background-color: var(--bg-hover);
 }
 #filter-results-status {
   /* height: 1em; */
@@ -584,6 +628,18 @@ body.searching [data-ignored="true"] {
   background-color: var(--filter-button-active-bg);
   color: var(--filter-button-active-text);
 }
+
+/* Active filter indicator dot */
+#filters-container button.active::after {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background-color: var(--active-channel);
+  border-radius: 50%;
+  margin-left: 6px;
+}
+
 .show-downloaded-videos [data-downloaded="false"] {
   display: none;
 }
@@ -655,12 +711,13 @@ empty-state {
 
 .info-duration {
   position: absolute;
-  bottom: 12px;
-  right: 12px;
-  background: var(--bg-primary);
-  border-radius: 2px;
-  padding: 2px 3px;
-  opacity: 0.8;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  border-radius: 3px;
+  padding: 2px 5px;
+  font-size: 12px;
 }
 
 
@@ -668,8 +725,8 @@ sse-connection {
   position: fixed;
   bottom: 1.5rem;
   left: 1rem;
-  width: 1rem;
-  height: 1rem;
+  width: 10px;
+  height: 10px;
   z-index: 9999;
   border-radius: 50%;
   display: flex;
@@ -679,7 +736,36 @@ sse-connection {
 
 sse-connection[data-connected='true'] {
   background: green;
+  box-shadow: 0 0 6px rgba(0, 128, 0, 0.4);
 }
 sse-connection[data-connected='false'] {
   background: red;
+  box-shadow: 0 0 6px rgba(255, 0, 0, 0.4);
+}
+
+/* Settings page - subtle form styling */
+#settings > div:not(:first-child) {
+  margin-bottom: 12px;
+}
+
+#settings form > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#settings form > div small {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-secondary);
+}
+
+/* Better checkbox alignment */
+input[type="checkbox"] {
+  accent-color: var(--active-channel);
+}
+
+/* Add a subtle bottom border to video cards */
+.video {
+  background-color: transparent;
 }
