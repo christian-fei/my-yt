@@ -251,37 +251,29 @@ function diskUsageHandler (req, res, repo) {
 async function reclaimDiskSpaceHandler (req, res, repo, connections = []) {
   const body = await getBody(req)
   const { onlyIgnored } = JSON.parse(body)
-  const videos = repo.getAllVideos()
 
-  const filterFn = onlyIgnored ? video => (video.downloaded || video.transcript) && video.ignored : video => (video.downloaded || video.transcript)
+  const filterFn = (video) => (video.downloaded || video.transcript)
+    ? (onlyIgnored ? video.ignored : true)
+    : false
 
-  videos.filter(filterFn)
-    .forEach((video) => {
-      try {
-        fs.readdir('./data/videos', (err, filenames) => {
-          if (err) {
-            broadcastSSE(JSON.stringify({ type: 'download-log-line', line: `error reading dir data/video: ${err.message}` }), connections)
-            return console.error(err)
-          }
-          for (const filename of filenames) {
-            if (filename.startsWith(video.id)) {
-              fs.unlink(`./data/videos/${filename}`, err => {
-                if (err) {
-                  console.error(err)
-                  broadcastSSE(JSON.stringify({ type: 'download-log-line', line: `error deleting ${filename}: ${err.message}` }), connections)
-                } else {
-                  console.log('deleted', filename)
-                  repo.updateVideo(video.id, { downloaded: false })
-                  broadcastSSE(JSON.stringify({ type: 'download-log-line', line: `deleted ${filename}` }), connections)
-                }
-              })
-            }
-          }
-        })
-      } catch (err) {
-        console.error(err.message)
+  const videos = repo.getAllVideos().filter(filterFn)
+  const filenames = await fs.promises.readdir('./data/videos')
+  for (const video of videos) {
+    try {
+      for (const filename of filenames) {
+        if (filename.startsWith(video.id)) {
+          await fs.promises.unlink(`./data/videos/${filename}`)
+          console.log('deleted', filename)
+          repo.updateVideo(video.id, { downloaded: false })
+          broadcastSSE(JSON.stringify({ type: 'download-log-line', line: `deleted ${filename}` }), connections)
+        }
       }
-    })
+    } catch (err) {
+      console.error(`error processing video ${video.id}: ${err.message}`)
+      broadcastSSE(JSON.stringify({ type: 'download-log-line', line: `error processing video ${video.id}: ${err.message}` }), connections)
+    }
+  }
+
   repo.saveVideos()
   res.writeHead(200)
   res.end()
