@@ -8,7 +8,7 @@ const staticFiles = {
 }
 
 const jsFiles = [
-  '/main.js', '/lib/store.js', '/lib/router.js', '/lib/utils.js',
+  '/main.js', '/lib/store.js', '/lib/router.js', '/lib/utils.js', '/lib/api.js',
   '/components/video-element.js', '/components/videos-container.js', '/components/sse-connection.js',
   '/components/search-videos.js', '/components/channels-list.js', '/components/empty-state.js',
   '/components/forms/add-channel-form.js', '/components/forms/manage-channels-form.js',
