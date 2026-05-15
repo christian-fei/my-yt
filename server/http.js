@@ -1,7 +1,7 @@
 import http from 'http'
 import { URL } from 'url'
 import { handleSSE, broadcastSSE } from './sse.js'
-import apiHandler from './router/api.js'
+import apiHandler from './router/index.js'
 import appHandler from './router/app.js'
 import Repository from '../lib/repository.js'
 
