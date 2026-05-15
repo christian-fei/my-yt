@@ -22,6 +22,10 @@ const llmSettings = {
   temperature: process.env.AI_TEMPERATURE ?? llmDefaults.temperature
 }
 
+function broadcastMessage (type, payload, connections) {
+  return broadcastSSE(JSON.stringify({ type, ...payload }), connections)
+}
+
 const routeTable = [
   { path: '/api/channels', method: 'GET', handler: getChannelHandler, nargs: 3 },
   { path: '/api/channels', method: 'POST', handler: addChannelHandler, nargs: 4 },
@@ -87,7 +91,7 @@ async function addChannelHandler (req, res, repo, connections = []) {
   const videos = await updateAndPersistVideosForChannel(name, repo)
   if (Array.isArray(videos)) {
     repo.addChannel(name)
-    broadcastSSE(JSON.stringify({ type: 'new-videos', name, videos }), connections)
+    broadcastMessage('new-videos', { name, videos }, connections)
     res.writeHead(201)
     return res.end('Channel added')
   }
@@ -128,29 +132,29 @@ async function downloadVideoHandler (req, res, repo, connections = [], state = {
   let broadcastNewVideoOnce = false
   downloadVideo(id, repo, (message) => {
     if (external && !broadcastNewVideoOnce) {
-      broadcastSSE(JSON.stringify({ type: 'new-videos', videos: [repo.getVideo(id)] }), connections)
+      broadcastMessage('new-videos', { videos: [repo.getVideo(id)] }, connections)
       broadcastNewVideoOnce = true
     }
     if (message.status === 'info') {
-      broadcastSSE(JSON.stringify({ type: 'download-log-line', line: message.line }), connections)
+      broadcastMessage('download-log-line', { line: message.line }, connections)
     }
     if (message.status === 'progress') {
       const progressPayload = Object.assign({}, message)
       if (!progressPayload.id) progressPayload.id = id
       if (!progressPayload.phase) progressPayload.phase = (progressPayload.frame || (progressPayload.time && progressPayload.time.indexOf(':') >= 0 && !progressPayload.total)) ? 'transcode' : 'download'
       if (progressPayload.phase === 'transcode') {
-        broadcastSSE(JSON.stringify({ type: 'transcode-progress', progress: progressPayload }), connections)
+        broadcastMessage('transcode-progress', { progress: progressPayload }, connections)
       } else {
-        broadcastSSE(JSON.stringify({ type: 'download-progress', progress: progressPayload }), connections)
+        broadcastMessage('download-progress', { progress: progressPayload }, connections)
       }
     }
   })
     .then(() => {
       const video = repo.getVideo(id)
-      broadcastSSE(JSON.stringify({ type: 'downloaded', videoId: id, downloaded: true, video }), connections)
+      broadcastMessage('downloaded', { videoId: id, downloaded: true, video }, connections)
     })
     .catch((error) => {
-      broadcastSSE(JSON.stringify({ type: 'download-log-line', line: error.stderr }), connections)
+      broadcastMessage('download-log-line', { line: error.stderr }, connections)
     })
     .finally(() => {
       delete state.downloading[id]
@@ -168,13 +172,13 @@ async function summarizeVideoHandler (req, res, repo, connections = [], state = 
   state.summarizing[id] = { lines: [] }
 
   summarizeVideo(id, repo, llmSettings, (line) => {
-    broadcastSSE(JSON.stringify({ type: 'download-log-line', line }), connections)
+    broadcastMessage('download-log-line', { line }, connections)
   })
     .then(({ summary, transcript }) =>
-      broadcastSSE(JSON.stringify({ type: 'summary', summary, transcript, videoId: id }), connections))
+      broadcastMessage('summary', { summary, transcript, videoId: id }, connections))
     .catch((error) => {
-      broadcastSSE(JSON.stringify({ type: 'download-log-line', line: error.message }), connections)
-      broadcastSSE(JSON.stringify({ type: 'summary-error', videoId: id }), connections)
+      broadcastMessage('download-log-line', { line: error.message }, connections)
+      broadcastMessage('summary-error', { videoId: id }, connections)
     })
     .finally(() => {
       delete state.summarizing[id]
@@ -188,7 +192,7 @@ async function ignoreVideoHandler (req, res, repo, connections = []) {
   const body = await getBody(req)
   const { id, ignore } = JSON.parse(body)
   const ignored = ignore ? repo.ignoreVideo(id) : repo.unignoreVideo(id)
-  broadcastSSE(JSON.stringify({ type: 'ignored', videoId: id, ignored }), connections)
+  broadcastMessage('ignored', { videoId: id, ignored }, connections)
   res.writeHead(200, { 'Content-Type': 'application/json' })
   return res.end(JSON.stringify(ignored))
 }
@@ -197,7 +201,7 @@ async function deleteVideoHandler (req, res, repo, connections = []) {
   const body = await getBody(req)
   const { id } = JSON.parse(body)
   repo.deleteVideo(id)
-  broadcastSSE(JSON.stringify({ type: 'downloaded', videoId: id, downloaded: false }), connections)
+  broadcastMessage('downloaded', { videoId: id, downloaded: false }, connections)
   res.writeHead(200)
   res.end()
 }
@@ -265,12 +269,12 @@ async function reclaimDiskSpaceHandler (req, res, repo, connections = []) {
           await fs.promises.unlink(`./data/videos/${filename}`)
           console.log('deleted', filename)
           repo.updateVideo(video.id, { downloaded: false })
-          broadcastSSE(JSON.stringify({ type: 'download-log-line', line: `deleted ${filename}` }), connections)
+          broadcastMessage('download-log-line', { line: `deleted ${filename}` }, connections)
         }
       }
     } catch (err) {
       console.error(`error processing video ${video.id}: ${err.message}`)
-      broadcastSSE(JSON.stringify({ type: 'download-log-line', line: `error processing video ${video.id}: ${err.message}` }), connections)
+      broadcastMessage('download-log-line', { line: `error processing video ${video.id}: ${err.message}` }, connections)
     }
   }
 
@@ -320,7 +324,7 @@ function watchVideoHandler (req, res, repo, connections = []) {
   if (!fs.existsSync(location)) {
     res.writeHead(404, { 'Content-Type': 'text/plain' })
     res.end('Video not found')
-    broadcastSSE(JSON.stringify({ type: 'download-log-line', line: `video does not exist ${location}` }), connections)
+    broadcastMessage('download-log-line', { line: `video does not exist ${location}` }, connections)
     return
   }
 
@@ -379,12 +383,12 @@ function watchVideoHandler (req, res, repo, connections = []) {
     res.setHeader('content-range', `bytes ${start || 0}-${end || (contentLength - 1)}/${contentLength}`)
   }
 
-  broadcastSSE(JSON.stringify({ type: 'download-log-line', line: `video range requested ${location} ${start || 0}-${end || (contentLength - 1)}/${contentLength}` }), connections)
+  broadcastMessage('download-log-line', { line: `video range requested ${location} ${start || 0}-${end || (contentLength - 1)}/${contentLength}` }, connections)
 
   const fileStream = fs.createReadStream(location, options)
   fileStream.on('error', error => {
     console.error(`Error reading file ${location}.`, error)
-    broadcastSSE(JSON.stringify({ type: 'download-log-line', line: `video stream error ${location}: ${error.message}` }), connections)
+    broadcastMessage('download-log-line', { line: `video stream error ${location}: ${error.message}` }, connections)
 
     res.writeHead(500)
     res.end()
