@@ -78,8 +78,9 @@ async function getChannelHandler (req, res, repo) {
 }
 
 async function addChannelHandler (req, res, repo, connections = []) {
-  const body = await getBody(req)
-  let { name } = JSON.parse(body)
+  const parsed = await parseBody(req, res)
+  if (parsed === null) return
+  let { name } = parsed
   name = name.trim()
   name = name.startsWith('@') ? name.substring(1) : name
 
@@ -101,8 +102,9 @@ async function addChannelHandler (req, res, repo, connections = []) {
 }
 
 async function deleteChannelHandler (req, res, repo) {
-  const body = await getBody(req)
-  let { name } = JSON.parse(body)
+  const parsed = await parseBody(req, res)
+  if (parsed === null) return
+  let { name } = parsed
   name = name.trim()
 
   if (!repo.channelExists(name)) {
@@ -116,8 +118,9 @@ async function deleteChannelHandler (req, res, repo) {
 }
 
 async function downloadVideoHandler (req, res, repo, connections = [], state = {}) {
-  const body = await getBody(req)
-  let { id, external } = JSON.parse(body)
+  const parsed = await parseBody(req, res)
+  if (parsed === null) return
+  let { id, external } = parsed
 
   if (isUnsupportedUrl(id)) {
     console.log('unsupported url', id)
@@ -165,8 +168,9 @@ async function downloadVideoHandler (req, res, repo, connections = [], state = {
 }
 
 async function summarizeVideoHandler (req, res, repo, connections = [], state = {}, llmSettings = {}) {
-  const body = await getBody(req)
-  const { id } = JSON.parse(body)
+  const parsed = await parseBody(req, res)
+  if (parsed === null) return
+  const { id } = parsed
 
   state.summarizing = state.summarizing || {}
   state.summarizing[id] = { lines: [] }
@@ -189,8 +193,9 @@ async function summarizeVideoHandler (req, res, repo, connections = [], state = 
 }
 
 async function ignoreVideoHandler (req, res, repo, connections = []) {
-  const body = await getBody(req)
-  const { id, ignore } = JSON.parse(body)
+  const parsed = await parseBody(req, res)
+  if (parsed === null) return
+  const { id, ignore } = parsed
   const ignored = ignore ? repo.ignoreVideo(id) : repo.unignoreVideo(id)
   broadcastMessage('ignored', { videoId: id, ignored }, connections)
   res.writeHead(200, { 'Content-Type': 'application/json' })
@@ -198,8 +203,9 @@ async function ignoreVideoHandler (req, res, repo, connections = []) {
 }
 
 async function deleteVideoHandler (req, res, repo, connections = []) {
-  const body = await getBody(req)
-  const { id } = JSON.parse(body)
+  const parsed = await parseBody(req, res)
+  if (parsed === null) return
+  const { id } = parsed
   repo.deleteVideo(id)
   broadcastMessage('downloaded', { videoId: id, downloaded: false }, connections)
   res.writeHead(200)
@@ -220,8 +226,9 @@ function getVideoQualityHandler (req, res, repo) {
 }
 
 async function setVideoQualityHandler (req, res, repo) {
-  const body = await getBody(req)
-  const videoQuality = JSON.parse(body)
+  const parsed = await parseBody(req, res)
+  if (parsed === null) return
+  const videoQuality = parsed
 
   const newQuality = repo.setVideoQualitySetting(videoQuality)
   if (!newQuality) {
@@ -253,8 +260,9 @@ function diskUsageHandler (req, res, repo) {
 }
 
 async function reclaimDiskSpaceHandler (req, res, repo, connections = []) {
-  const body = await getBody(req)
-  const { onlyIgnored } = JSON.parse(body)
+  const parsed = await parseBody(req, res)
+  if (parsed === null) return
+  const { onlyIgnored } = parsed
 
   const filterFn = (video) => (video.downloaded || video.transcript)
     ? (onlyIgnored ? video.ignored : true)
@@ -289,15 +297,17 @@ async function getExcludedTermsHandler (req, res, repo) {
   res.end(JSON.stringify(excludedTerms))
 }
 async function addExcludedTermHandler (req, res, repo) {
-  const body = await getBody(req)
-  const term = JSON.parse(body).term
+  const parsed = await parseBody(req, res)
+  if (parsed === null) return
+  const term = parsed.term
   repo.addExcludedTerm(term)
   res.writeHead(200)
   res.end()
 }
 async function removeExcludedTermHandler (req, res, repo) {
-  const body = await getBody(req)
-  const term = JSON.parse(body).term
+  const parsed = await parseBody(req, res)
+  if (parsed === null) return
+  const term = parsed.term
   repo.removeExcludedTerm(term)
   res.writeHead(200)
   res.end()
@@ -308,8 +318,9 @@ async function getTranscodeVideosHandler (req, res, repo) {
   res.end(JSON.stringify(transcodeVideos))
 }
 async function setTranscodeVideosHandler (req, res, repo) {
-  const body = await getBody(req)
-  const transcodeVideos = JSON.parse(body)
+  const parsed = await parseBody(req, res)
+  if (parsed === null) return
+  const transcodeVideos = parsed
 
   repo.setTranscodeVideosSetting(transcodeVideos)
   res.writeHead(200)
@@ -417,6 +428,17 @@ async function getBody (req) {
     req.on('end', () => resolve(body))
     req.on('error', reject)
   })
+}
+
+async function parseBody (req, res) {
+  const body = await getBody(req)
+  try {
+    return JSON.parse(body)
+  } catch (err) {
+    res.writeHead(400, { 'Content-Type': 'application/json' })
+    res.end(JSON.stringify({ error: 'Invalid JSON body' }))
+    return null
+  }
 }
 
 function getQuery (req) {
