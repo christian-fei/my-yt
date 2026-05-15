@@ -11,6 +11,9 @@ export function initRepository (dataDir) {
 }
 
 export function getRepository (dataDir) {
+  // Check for test override first
+  if (_override !== null) return _override
+
   const key = dataDir || './data'
   if (_instances.has(key)) {
     return _instances.get(key)
@@ -25,4 +28,15 @@ export function getRepository (dataDir) {
 export function resetForTesting (dataDir) {
   const key = dataDir || './data'
   _instances.delete(key)
+}
+
+// Test helpers: allow injecting a mock repository for testing
+let _override = null
+
+export function setRepositoryOverride (mockRepo) {
+  _override = mockRepo
+}
+
+export function resetRepositoryOverride () {
+  _override = null
 }

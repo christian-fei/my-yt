@@ -4,6 +4,7 @@ import downloads from './handlers/downloads.js'
 import summaries from './handlers/summaries.js'
 import settings from './handlers/settings.js'
 import diskSpace from './handlers/disk-space.js'
+import { scraperStatusHandler } from './handlers/health.js'
 
 const routeMap = {
   // Channels: GET, POST, DELETE
@@ -43,7 +44,10 @@ const routeMap = {
   // Excluded terms: GET, POST, DELETE
   'GET /api/excluded-terms': settings.getExcludedTermsHandler,
   'POST /api/excluded-terms': settings.addExcludedTermHandler,
-  'DELETE /api/excluded-terms': settings.removeExcludedTermHandler
+  'DELETE /api/excluded-terms': settings.removeExcludedTermHandler,
+
+  // Scraper health: GET
+  'GET /api/scraper-status': scraperStatusHandler
 }
 
 export default function apiHandler (req, res, connections = [], state = {}) {
