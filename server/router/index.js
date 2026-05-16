@@ -46,6 +46,9 @@ const routeMap = {
   'POST /api/excluded-terms': settings.addExcludedTermHandler,
   'DELETE /api/excluded-terms': settings.removeExcludedTermHandler,
 
+  // Watched videos: POST
+  'POST /api/watched-video': settings.toggleWatchedVideoHandler,
+
   // Scraper health: GET
   'GET /api/scraper-status': scraperStatusHandler
 }

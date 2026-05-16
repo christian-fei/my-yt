@@ -1,4 +1,8 @@
 /* global EventSource, MutationObserver */
+import Store from './lib/store.js'
+
+const store = new Store()
+
 window.state = {
   downloading: {},
   summarizing: {},
@@ -108,6 +112,14 @@ window.eventSource.onmessage = (message) => {
         const videoData = JSON.parse($video.dataset.data)
         videoData.ignored = data.ignored
         $video.dataset.data = JSON.stringify(videoData)
+      })
+      return
+    }
+    if (data.type === 'watched' && data.videoId) {
+      store.toggleWatched(data.videoId)
+      ;[...document.querySelectorAll(`[data-video-id="${data.videoId}"]`)].forEach($video => {
+        if (!$video.dataset.data) return
+        $video.render()
       })
       return
     }

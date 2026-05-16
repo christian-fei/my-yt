@@ -7,6 +7,7 @@ export default class Store {
   useTLDWTubeKey = 'useTLDWTube'
   lastVideosKey = 'lastVideos'
   ignoreTermsKey = 'ignoreTerms'
+  watchedVideosKey = 'watchedVideos'
 
   constructor () {
     if (!localStorage.getItem(this.showThumbnailsKey)) localStorage.setItem(this.showThumbnailsKey, 'true')
@@ -16,6 +17,7 @@ export default class Store {
     if (!localStorage.getItem(this.useTLDWTubeKey)) localStorage.setItem(this.useTLDWTubeKey, 'false')
     if (!localStorage.getItem(this.lastVideosKey)) localStorage.setItem(this.lastVideosKey, '{}')
     if (!localStorage.getItem(this.ignoreTermsKey)) localStorage.setItem(this.ignoreTermsKey, '[]')
+    if (!localStorage.getItem(this.watchedVideosKey)) localStorage.setItem(this.watchedVideosKey, '[]')
   }
 
   toggle (key) {
@@ -24,7 +26,7 @@ export default class Store {
   }
 
   get (key) {
-    if (![this.showThumbnailsKey, this.showBigPlayerKey, this.showOriginalThumbnailKey, this.showCaptionsKey, this.useTLDWTubeKey, this.lastVideosKey, this.ignoreTermsKey].includes(key)) return console.error('invalid key', key)
+    if (![this.showThumbnailsKey, this.showBigPlayerKey, this.showOriginalThumbnailKey, this.showCaptionsKey, this.useTLDWTubeKey, this.lastVideosKey, this.ignoreTermsKey, this.watchedVideosKey].includes(key)) return console.error('invalid key', key)
     return JSON.parse(localStorage.getItem(key))
   }
 
@@ -37,7 +39,7 @@ export default class Store {
   }
 
   push (key, item) {
-    if (![this.ignoreTermsKey].includes(key)) return console.error('invalid key', key)
+    if (![this.ignoreTermsKey, this.watchedVideosKey].includes(key)) return console.error('invalid key', key)
     const list = this.get(key)
     list.push(item)
     this.set(key, list)
@@ -45,7 +47,7 @@ export default class Store {
   }
 
   remove (key, item) {
-    if (![this.ignoreTermsKey].includes(key)) return console.error('invalid key', key)
+    if (![this.ignoreTermsKey, this.watchedVideosKey].includes(key)) return console.error('invalid key', key)
     let list = this.get(key)
     list = list.filter(i => i !== item)
     this.set(key, list)
@@ -53,8 +55,20 @@ export default class Store {
   }
 
   includes (key, item) {
-    if (![this.ignoreTermsKey].includes(key)) return console.error('invalid key', key)
+    if (![this.ignoreTermsKey, this.watchedVideosKey].includes(key)) return console.error('invalid key', key)
     const list = this.get(key)
     return list.includes(item)
+  }
+
+  isWatched (videoId) {
+    return this.get(this.watchedVideosKey).includes(videoId)
+  }
+
+  toggleWatched (videoId) {
+    if (this.isWatched(videoId)) {
+      this.remove(this.watchedVideosKey, videoId)
+    } else {
+      this.push(this.watchedVideosKey, videoId)
+    }
   }
 }

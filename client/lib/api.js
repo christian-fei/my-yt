@@ -12,7 +12,8 @@ export const ENDPOINTS = {
   DISK_USAGE: '/api/disk-usage',
   RECLAIM_DISK_SPACE: '/api/reclaim-disk-space',
   TRANSCODE_VIDEOS: '/api/transcode-videos',
-  EXCLUDED_TERMS: '/api/excluded-terms'
+  EXCLUDED_TERMS: '/api/excluded-terms',
+  WATCHED_VIDEO: '/api/watched-video'
 }
 
 export class ApiClient {

@@ -1,4 +1,4 @@
-import { parseBody } from '../_helpers.js'
+import { parseBody, broadcastMessage } from '../_helpers.js'
 import { getRepository } from '../../service-container.js'
 
 export function getVideoQualityHandler (req, res, connections = [], state = {}) {
@@ -68,4 +68,19 @@ export async function removeExcludedTermHandler (req, res) {
   res.end()
 }
 
-export default { getVideoQualityHandler, setVideoQualityHandler, getTranscodeVideosHandler, setTranscodeVideosHandler, getExcludedTermsHandler, addExcludedTermHandler, removeExcludedTermHandler }
+export async function toggleWatchedVideoHandler (req, res, connections = [], state = {}) {
+  const repo = getRepository()
+  const parsed = await parseBody(req, res)
+  if (parsed === null) return
+  const videoId = parsed.id
+  repo.toggleWatched(videoId)
+
+  // Broadcast SSE to update all connected clients
+  const updated = repo.isWatched(videoId)
+  broadcastMessage('watched', { videoId, watched: updated }, connections)
+
+  res.writeHead(200)
+  res.end()
+}
+
+export default { getVideoQualityHandler, setVideoQualityHandler, getTranscodeVideosHandler, setTranscodeVideosHandler, getExcludedTermsHandler, addExcludedTermHandler, removeExcludedTermHandler, toggleWatchedVideoHandler }
