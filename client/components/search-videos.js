@@ -20,7 +20,6 @@ class SearchVideos extends HTMLElement {
     const ignored = searchParams.get('ignored') || ''
     const downloaded = searchParams.get('downloaded') || ''
     const summarized = searchParams.get('summarized') || ''
-    const unwatched = searchParams.get('unwatched') || ''
     const bookmarked = searchParams.get('bookmarked') || ''
     const searchTerm = searchParams.get('filter') || ''
     this.querySelector('#search').value = searchTerm
@@ -28,7 +27,7 @@ class SearchVideos extends HTMLElement {
     this.querySelector('#ignored').checked = ignored === 'true'
     this.querySelector('#downloaded').checked = downloaded === 'true'
     this.querySelector('#summarized').checked = summarized === 'true'
-    this.querySelector('#unwatched').checked = unwatched === 'true'
+
     this.querySelector('#bookmarked').checked = bookmarked === 'true'
   }
 
@@ -42,7 +41,7 @@ class SearchVideos extends HTMLElement {
     this.querySelector('#ignored').addEventListener('change', this.searchHandler.bind(this))
     this.querySelector('#downloaded').addEventListener('change', this.searchHandler.bind(this))
     this.querySelector('#summarized').addEventListener('change', this.searchHandler.bind(this))
-    this.querySelector('#unwatched').addEventListener('change', this.searchHandler.bind(this))
+
     this.querySelector('#bookmarked').addEventListener('change', this.searchHandler.bind(this))
   }
 
@@ -52,7 +51,7 @@ class SearchVideos extends HTMLElement {
     this.querySelector('#ignored').removeEventListener('change', this.searchHandler.bind(this))
     this.querySelector('#downloaded').removeEventListener('change', this.searchHandler.bind(this))
     this.querySelector('#summarized').removeEventListener('change', this.searchHandler.bind(this))
-    this.querySelector('#unwatched').removeEventListener('change', this.searchHandler.bind(this))
+
     this.querySelector('#bookmarked').removeEventListener('change', this.searchHandler.bind(this))
   }
 
@@ -78,10 +77,6 @@ class SearchVideos extends HTMLElement {
             <div class="flex-1">
               <input type="checkbox" id="excluded"/>
               <label for="excluded">excluded</label>
-            </div>
-            <div class="flex-1">
-              <input type="checkbox" id="unwatched"/>
-              <label for="unwatched">unwatched</label>
             </div>
             <div class="flex-1">
               <input type="checkbox" id="bookmarked"/>
@@ -121,7 +116,6 @@ class SearchVideos extends HTMLElement {
     const ignored = this.querySelector('#ignored').checked
     const downloaded = this.querySelector('#downloaded').checked
     const summarized = this.querySelector('#summarized').checked
-    const unwatched = this.querySelector('#unwatched').checked
     const bookmarked = this.querySelector('#bookmarked').checked
 
     if (excluded) {
@@ -135,7 +129,7 @@ class SearchVideos extends HTMLElement {
       this.querySelector('#excluded').disabled = false
     }
 
-    const query = `?filter=${encodeURIComponent(searchTerm)}${excluded ? '&excluded=true' : ''}${downloaded ? '&downloaded=true' : ''}${ignored ? '&ignored=true' : ''}${summarized ? '&summarized=true' : ''}${unwatched ? '&unwatched=true' : ''}${bookmarked ? '&bookmarked=true' : ''}`
+    const query = `?filter=${encodeURIComponent(searchTerm)}${excluded ? '&excluded=true' : ''}${downloaded ? '&downloaded=true' : ''}${ignored ? '&ignored=true' : ''}${summarized ? '&summarized=true' : ''}${bookmarked ? '&bookmarked=true' : ''}`
     window.history.pushState({}, '', query)
 
     fetch(ENDPOINTS.VIDEOS + query)
