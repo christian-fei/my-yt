@@ -11,6 +11,9 @@
   /* Background colors */
   --bg-primary: var(--color-white);
   --bg-input: #f5f5f5;
+  --bg-card: var(--color-white);
+
+  /* Video card background (used by .video below) */
 
   /* UI element colors */
   --border-light: #ccc;
@@ -44,6 +47,8 @@
   --button-shadow: 0 1px 3px rgba(0, 0, 0, 0.15)
 }
 
+html { scroll-behavior: smooth; }
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
   margin: 20px;
@@ -53,6 +58,12 @@ body {
   overflow-y: scroll;
   font-size: 15px;
   line-height: 1.5;
+}
+
+/* Refined focus ring — subtle accent-colored glow */
+*:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 /* Custom scrollbar — thin and subtle */
@@ -84,6 +95,7 @@ a:hover {
     --bg-primary: #121212;
     --bg-secondary: #202020;
     --bg-input: #2a2a2a;
+    --bg-card: #181818;
 
     /* UI element colors */
     --border-light: #444;
@@ -126,6 +138,20 @@ a:hover {
     background-color: var(--bg-secondary);
     color: var(--text-primary);
   }
+
+  /* Dark mode video card — border only (bg handled by --bg-card) */
+  .video {
+    background-color: var(--bg-card);
+    border-color: #333;
+  }
+  .video:hover {
+    border-color: #444;
+  }
+  /* Dark mode ignore/bookmark actions */
+  .video .action.ignore { color: #666; }
+  .video .action.ignore:hover { background-color: #2a2a2a; color: #c0392b; }
+  .video .action.bookmark { background-color: var(--ignore-button-bg); color: #c8701a; }
+  .video .action.bookmark:hover { background-color: #2a2a2a; color: #e67e22; }
 }
 
 main {
@@ -345,11 +371,15 @@ video, video:focus {
   user-select: none;
   -webkit-user-select: none;
   border-radius: 10px;
-  transition: box-shadow 0.2s ease, transform 0.15s ease;
+  background-color: var(--bg-card);
+  border: 1px solid #e8e8e8;
+  box-shadow: var(--card-shadow);
+  transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
 }
 .video:hover {
   box-shadow: var(--card-shadow-hover);
   transform: translateY(-3px);
+  border-color: #d0d0d0;
 }
 .video .action.ignore {
   position: absolute;
@@ -357,15 +387,34 @@ video, video:focus {
   right: 0;
   z-index: 1000;
   background-color: var(--ignore-button-bg);
-  color: var(--text-primary);
+  color: #999;
   font-size: 0.78rem;
-  padding: 6px 14px;
+  padding: 5px 12px;
   cursor: pointer;
   border-radius: 0 10px 0 8px;
   transition: background-color 0.15s ease, opacity 0.15s ease;
 }
 .video .action.ignore:hover {
   background-color: var(--bg-hover);
+  color: #e74c3c;
+}
+
+.video .action.bookmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  background-color: var(--ignore-button-bg);
+  color: #e67e22;
+  font-size: 0.78rem;
+  padding: 5px 12px;
+  cursor: pointer;
+  border-radius: 10px 0 8px 0;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+}
+.video .action.bookmark:hover {
+  background-color: var(--bg-hover);
+  color: #d35400;
 }
 .video .title {
   margin-top: 8px;
@@ -583,10 +632,11 @@ body > header {
   padding: 1em 0.5em 0;
   margin-bottom: 1rem;
   overflow: hidden;
-  background-color: var(--bg-primary);
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-light);
   font-size: 1.1rem;
-  /* fade out from bottom outside */
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
 }
 .align-start {
   align-items: flex-start;
@@ -656,6 +706,14 @@ search-videos {
 
   .header-spacer {
     display: none;
+  }
+}
+
+/* Dark mode header — dark semi-transparent bg + blur */
+@media (prefers-color-scheme: dark) {
+  body > header {
+    background-color: rgba(18, 18, 18, 0.85);
+    border-bottom-color: #333;
   }
 }
 
@@ -835,7 +893,10 @@ dialog#bookmark-dialog button[type="button"] {
 }
 
 #filters-container button.active {
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(135deg, var(--filter-button-active-bg), #3a3a3a);
+  color: var(--filter-button-active-text);
+  border-radius: 20px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 #filters-container button:active {
@@ -857,8 +918,19 @@ body.searching [data-ignored="true"] {
   display: none;
 } */
 #show-summarized-videos.active, #show-downloaded-videos.active, #show-ignored-videos.active {
-  background-color: var(--filter-button-active-bg);
+  background: linear-gradient(135deg, var(--filter-button-active-bg), #3a3a3a) !important;
   color: var(--filter-button-active-text);
+  border-radius: 20px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+/* Dark mode filter pills */
+@media (prefers-color-scheme: dark) {
+  #filters-container button.active,
+  #show-summarized-videos.active, #show-downloaded-videos.active, #show-ignored-videos.active {
+    background: linear-gradient(135deg, var(--filter-button-active-bg), #2a2a2a) !important;
+    box-shadow: inset 0 1px 3px rgba(255, 255, 255, 0.08);
+  }
 }
 
 /* Active filter indicator dot */
@@ -923,6 +995,16 @@ empty-state {
 .empty-state-text {
   font-size: 1.1rem;
   color: var(--text-secondary);
+}
+
+/* Subtle scale bounce on empty state emoji */
+.empty-state-text .extra-big {
+  animation: empty-emoji-bounce 2s ease-in-out infinite;
+}
+
+@keyframes empty-emoji-bounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
 }
 .user-select-none {
   user-select: none;
@@ -994,9 +1076,13 @@ sse-connection[data-connected='false'] {
   box-shadow: 0 0 8px rgba(231, 76, 60, 0.5);
 }
 
-/* Settings page - subtle form styling */
+/* Settings page — polished form styling */
+
+/* Subtle section dividers between settings groups */
 #settings > div:not(:first-child) {
   margin-bottom: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--details-border);
 }
 
 #settings form > div {
@@ -1017,11 +1103,6 @@ input[type="checkbox"] {
   accent-color: var(--active-channel);
 }
 
-/* Subtle video card background */
-.video {
-  background-color: transparent;
-}
-
 /* Details (settings sections) — slightly more padding and rounded corners */
 details {
   padding: 12px;
@@ -1035,4 +1116,11 @@ summary {
 
 summary:hover {
   color: var(--text-hover);
+}
+
+/* Dark mode settings polish */
+@media (prefers-color-scheme: dark) {
+  #settings > div:not(:first-child) {
+    border-top-color: #333;
+  }
 }
