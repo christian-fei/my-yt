@@ -4,6 +4,7 @@ import downloads from './handlers/downloads.js'
 import summaries from './handlers/summaries.js'
 import settings from './handlers/settings.js'
 import diskSpace from './handlers/disk-space.js'
+import bookmarks from './handlers/bookmarks.js'
 import { scraperStatusHandler } from './handlers/health.js'
 
 const routeMap = {
@@ -50,8 +51,19 @@ const routeMap = {
   'POST /api/watched-video': settings.toggleWatchedVideoHandler,
 
   // Scraper health: GET
-  'GET /api/scraper-status': scraperStatusHandler
-}
+  'GET /api/scraper-status': scraperStatusHandler,
+
+  // Bookmarks: GET, POST
+  'GET /api/bookmarks': bookmarks.searchBookmarksHandler,
+  'POST /api/bookmarks': bookmarks.addBookmarkHandler,
+
+  // Video Bookmarks: GET
+  'GET /api/bookmarks/:id': bookmarks.getBookmarksHandler,
+
+  // Delete Bookmark: POST
+  'POST /api/delete-bookmark': bookmarks.deleteBookmarkHandler
+
+} // route map ends here
 
 export default function apiHandler (req, res, connections = [], state = {}) {
   const path = req.url.split('?')[0]
@@ -68,6 +80,9 @@ export default function apiHandler (req, res, connections = [], state = {}) {
   }
   if (req.method === 'GET' && path.startsWith('/api/captions/')) {
     return videos.captionsHandler(req, res)
+  }
+  if (req.method === 'GET' && path.startsWith('/api/bookmarks/')) {
+    return bookmarks.getBookmarksHandler(req, res, connections)
   }
 
   // 404 fallback

@@ -13,7 +13,10 @@ export const ENDPOINTS = {
   RECLAIM_DISK_SPACE: '/api/reclaim-disk-space',
   TRANSCODE_VIDEOS: '/api/transcode-videos',
   EXCLUDED_TERMS: '/api/excluded-terms',
-  WATCHED_VIDEO: '/api/watched-video'
+  WATCHED_VIDEO: '/api/watched-video',
+  BOOKMARKS: '/api/bookmarks',
+  GET_BOOKMARKS: '/api/bookmarks/:id',
+  DELETE_BOOKMARK: '/api/delete-bookmark'
 }
 
 export class ApiClient {

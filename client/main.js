@@ -123,6 +123,13 @@ window.eventSource.onmessage = (message) => {
       })
       return
     }
+    if (data.type === 'bookmark-added' && data.videoId) {
+      ;[...document.querySelectorAll(`[data-video-id="${data.videoId}"]`)].forEach($video => {
+        if (!$video.dataset.data) return
+        $video.render()
+      })
+      return
+    }
     console.warn('unhandled', data)
   } catch (err) {
     console.error('sse parse error', err)

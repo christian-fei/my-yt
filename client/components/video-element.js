@@ -97,8 +97,53 @@ class VideoElement extends HTMLElement {
           : /* html */`<span tabindex="0"  class="action show-summary" data-video-id="${this.video.id}">📖 Summary</span>`}
         <a href="https://www.youtube.com/watch?v=${this.video.id}" class="action open-externally" target="_blank">📺 external</a>
         <span tabindex="0" class="action watched" data-video-id="${this.video.id}">${store.isWatched(this.video.id) ? '✅ Watched' : '❌ Unwatched'}</span>
+        <span tabindex="0" class="action bookmark" data-video-id="${this.video.id}">🔖 Bookmark</span>
       </div>
     `
+
+    // Show bookmarks panel if video has bookmarks
+    if (this.video.bookmarks && this.video.bookmarks.length > 0) {
+      const actionContainer = this.querySelector('.actions')
+      if (actionContainer && !this.querySelector('.bookmarks-list')) {
+        const bookmarksHtml = `<div class="bookmarks-list" style="margin-top: 8px;">
+          ${this.video.bookmarks.map(b => `<span tabindex="0" class="bookmark-item" data-bookmark-id="${b.id}" title="${(b.note || '').replace(/"/g, '&quot;')}">📌 ${this.formatTime(b.time)}${b.note ? ' · ' + b.note : ''}</span>`).join('')}
+        </div>`
+        actionContainer.insertAdjacentHTML('afterend', bookmarksHtml)
+      }
+    }
+
+    // Add bookmark dialog if not exists
+    if (!document.querySelector('dialog#bookmark-dialog')) {
+      const dialog = document.createElement('dialog')
+      dialog.id = 'bookmark-dialog'
+      dialog.innerHTML = /* html */`
+        <form method="dialog" id="bookmark-form">
+          <label>Time (seconds):</label>
+          <input type="number" id="bookmark-time" step="0.1" min="0" value="0" />
+          <label>Note:</label>
+          <input type="text" id="bookmark-note" placeholder="What's happening here?" />
+          <div style="margin-top: 12px; display: flex; gap: 8px;">
+            <button type="submit">Save</button>
+            <button type="button" id="cancel-bookmark-btn">Cancel</button>
+          </div>
+        </form>
+      `
+      document.body.appendChild(dialog)
+
+      dialog.querySelector('#cancel-bookmark-btn').addEventListener('click', () => {
+        dialog.close()
+      })
+
+      dialog.querySelector('#bookmark-form').addEventListener('submit', (e) => {
+        e.preventDefault()
+        const time = dialog.querySelector('#bookmark-time').value
+        const note = dialog.querySelector('#bookmark-note').value
+        this.addBookmarkAtTime(time, note)
+      })
+
+      // Also support keyboard shortcut (b key when video is playing)
+      document.addEventListener('keydown', this.handleBookmarkKey.bind(this))
+    }
 
     if (window.state && window.state.downloading && window.state.downloading[this.video.id]) {
       this.dataset.downloading = 'true'
@@ -120,6 +165,17 @@ class VideoElement extends HTMLElement {
     addClickListener(this.querySelector('.action.watched'), this.toggleWatchedVideoHandler.bind(this))
     addClickListener(this.querySelector('.channel-name'), this.filterByChannelHandler.bind(this))
     addClickListener(this.querySelector('.play.video-placeholder'), this.watchVideoHandler.bind(this))
+    addClickListener(this.querySelector('.action.bookmark'), this.toggleBookmarkDialog.bind(this))
+
+    // Register bookmark item clicks to jump in video
+    this.querySelectorAll('.bookmark-item').forEach(item => {
+      addClickListener(item, this.jumpToBookmarkTime.bind(this))
+    })
+
+    // Register SSE bookmark events
+    if (typeof window.addEventListenerSSE === 'function') {
+      window.addEventListenerSSE('bookmark-added', this.handleBookmarkAdded.bind(this))
+    }
   }
 
   unregisterEvents () {
@@ -132,7 +188,17 @@ class VideoElement extends HTMLElement {
     removeClickListener(this.querySelector('.action.watched'), this.toggleWatchedVideoHandler.bind(this))
     removeClickListener(this.querySelector('.channel-name'), this.filterByChannelHandler.bind(this))
     removeClickListener(this.querySelector('.play.video-placeholder'), this.watchVideoHandler.bind(this))
-    this.querySelector('video') && this.unregisterVideoEvents(this.querySelector('video'))
+    removeClickListener(this.querySelector('.action.bookmark'), this.toggleBookmarkDialog.bind(this))
+
+    this.querySelectorAll('.bookmark-item').forEach(item => {
+      removeClickListener(item, this.jumpToBookmarkTime.bind(this))
+    })
+
+    if (typeof window.removeEventListenerSSE === 'function') {
+      window.removeEventListenerSSE('bookmark-added', this.handleBookmarkAdded.bind(this))
+    }
+
+    document.removeEventListener('keydown', this.handleBookmarkKey)
   }
 
   watchVideoHandler (event) {
@@ -294,6 +360,129 @@ class VideoElement extends HTMLElement {
   scrollIntoViewWithOffset (offset, behavior = 'smooth') {
     const top = this.getBoundingClientRect().top - offset - document.body.getBoundingClientRect().top
     window.scrollTo({ top, behavior })
+  }
+
+  // === Bookmark Methods ===
+
+  toggleBookmarkDialog (event) {
+    event.preventDefault()
+    const dialog = document.querySelector('dialog#bookmark-dialog')
+    if (!dialog) return
+
+    // Get current time from playing video, default to 0
+    const video = this.querySelector('video')
+    dialog.querySelector('#bookmark-time').value = video ? Math.round(video.currentTime * 10) / 10 : 0
+    dialog.querySelector('#bookmark-note').value = ''
+
+    // Store current video reference for the dialog submit handler
+    dialog.dataset.videoId = this.video.id
+    dialog.showModal()
+
+    // Focus the time input for quick entry
+    setTimeout(() => dialog.querySelector('#bookmark-time').focus(), 100)
+  }
+
+  addBookmarkAtTime (time, note = '') {
+    const videoId = this.video.id
+    fetch(ENDPOINTS.BOOKMARKS, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: videoId, time: parseFloat(time), note })
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to add bookmark')
+        return res.json()
+      })
+      .then(bookmark => {
+        addToast(`Bookmark saved at ${this.formatTime(bookmark.time)}`)
+        document.querySelector('dialog#bookmark-dialog').close()
+
+        // Refresh this video element to show the new bookmark
+        const $videoElement = document.querySelector(`video-element[data-video-id="${videoId}"]`)
+        if ($videoElement) {
+          $videoElement.dispatchEvent(new CustomEvent('refresh'))
+        }
+      })
+      .catch(error => {
+        console.error('Error adding bookmark:', error)
+        addToast('Failed to save bookmark')
+      })
+  }
+
+  jumpToBookmarkTime (event) {
+    event.preventDefault()
+    const bookmarkId = parseInt(event.target.dataset.bookmarkId)
+    const videoElement = document.querySelector(`video-element[data-video-id="${this.video.id}"]`)
+    if (!videoElement) return
+
+    // Find the video element's player
+    const video = this.querySelector('video')
+    if (!video) {
+      // Start playing the video first, then seek
+      this.watchVideoHandler({ preventDefault: () => {} })
+      setTimeout(() => {
+        const newVideo = this.querySelector('video')
+        if (newVideo) {
+          this.seekToBookmark(bookmarkId, newVideo)
+        }
+      }, 500)
+      return
+    }
+
+    this.seekToBookmark(bookmarkId, video)
+  }
+
+  seekToBookmark (bookmarkId, video) {
+    const bookmarks = this.video.bookmarks || []
+    const bm = bookmarks.find(b => b.id === bookmarkId)
+    if (bm && video) {
+      video.currentTime = bm.time
+      addToast(`Jumped to ${this.formatTime(bm.time)}`)
+    }
+  }
+
+  handleBookmarkAdded (data) {
+    if (data.videoId !== this.video.id) return
+    // Refresh to show new bookmark in list
+    const $videoElement = document.querySelector(`video-element[data-video-id="${data.videoId}"]`)
+    if ($videoElement) {
+      $videoElement.dispatchEvent(new CustomEvent('refresh'))
+    }
+  }
+
+  handleBookmarkKey (event) {
+    // Press 'b' when a video is playing to toggle bookmark dialog
+    if (event.key === 'b' && !event.target.closest('input, textarea')) {
+      const activeVideo = document.querySelector('video:played') || document.querySelector('video[autoplay]')
+      if (activeVideo) {
+        const videoEl = activeVideo.closest('video-element')
+        if (videoEl) {
+          const dialog = document.querySelector('dialog#bookmark-dialog')
+          if (dialog && !dialog.open) {
+            const time = Math.round(activeVideo.currentTime * 10) / 10
+            dialog.querySelector('#bookmark-time').value = time
+            dialog.dataset.videoId = videoEl.video.id
+            dialog.showModal()
+          }
+        }
+      }
+    }
+
+    // Press 'Escape' to close bookmark dialog
+    if (event.key === 'Escape') {
+      const dialog = document.querySelector('dialog#bookmark-dialog')
+      if (dialog && dialog.open) {
+        dialog.close()
+      }
+    }
+  }
+
+  formatTime (seconds) {
+    const h = Math.floor(seconds / 3600)
+    const m = Math.floor((seconds % 3600) / 60)
+    const s = Math.floor(seconds % 60)
+    if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+    return `${m}:${String(s).padStart(2, '0')}`
   }
 }
 

@@ -20,6 +20,7 @@ A clean and minimal youtube frontend supported by yt-dlp, and optionally your lo
 - Play videos in background
 - Summarize video content using your local AI model (e.g. Ollama/LMStudio) or hosted provider (e.g. OpenAI, Anthropic)
 - Native Picture-in-Picture support
+- Bookmark videos with timestamps and notes 🔖 (keyboard shortcut: press `b` while watching)
 - No dependencies (except for `nano-spawn`, which itself has no transient deps)
 - HTML/CSS only, no JS frameworks on client/server side
 - Subtitles using `<track>` element and WebVTT API

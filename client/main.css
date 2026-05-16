@@ -677,6 +677,114 @@ summary:hover {
   color: var(--text-hover);
 }
 
+/* Bookmark styles */
+.action.bookmark {
+  color: #e67e22;
+  cursor: pointer;
+}
+
+.action.bookmark:hover {
+  color: #d35400;
+}
+
+.bookmarks-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px 8px;
+  background-color: var(--bg-input);
+  border-radius: 4px;
+  margin-top: 6px;
+}
+
+.bookmark-item {
+  display: inline-block;
+  padding: 2px 6px;
+  background-color: var(--filter-button-bg);
+  border-radius: 3px;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+}
+
+.bookmark-item:hover {
+  background-color: var(--active-channel);
+  color: white;
+}
+
+/* Bookmark dialog styling */
+dialog#bookmark-dialog {
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 1.5rem;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+dialog#bookmark-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+dialog#bookmark-dialog form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 0;
+}
+
+dialog#bookmark-dialog label {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+dialog#bookmark-dialog input[type="number"],
+dialog#bookmark-dialog input[type="text"] {
+  width: 100%;
+}
+
+dialog#bookmark-dialog button {
+  padding: 6px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: var(--active-channel);
+  color: white;
+  border: none;
+}
+
+dialog#bookmark-dialog button[type="button"] {
+  background-color: var(--filter-button-bg);
+  color: var(--text-primary);
+}
+
+/* Bookmarks filter */
+#bookmarks-filter {
+  background-color: var(--filter-button-bg);
+  color: var(--text-secondary);
+}
+
+#bookmarks-filter.active {
+  background-color: var(--filter-button-active-bg);
+  color: var(--filter-button-active-text);
+}
+
+/* Bookmarks count badge */
+.bookmark-count {
+  display: inline-block;
+  min-width: 14px;
+  height: 14px;
+  line-height: 14px;
+  text-align: center;
+  background-color: var(--active-channel);
+  color: white;
+  border-radius: 7px;
+  font-size: 10px;
+  padding: 0 4px;
+  margin-left: 2px;
+}
+
 #notifications-container {
   position: fixed;
   bottom: 4em;
