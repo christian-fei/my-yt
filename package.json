@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "@esm-bundle/chai": "^4.3.0",
-    "@open-wc/testing": "^4.0.0",
+    "@open-wc/testing": "^5.0.0",
     "@web/test-runner": "^0.20.2",
     "@web/test-runner-puppeteer": "^0.18.0",
     "sinon": "^22.0.0",
